@@ -3,8 +3,9 @@ import numpy as np
 import pickle
 import json
 import ast
+import time
 
-F = nx.DiGraph()
+G = nx.DiGraph()
 
 
 basecost_Unit = [15, 100, 1100, 12000, 130000]
@@ -37,14 +38,14 @@ def ProductionRate(sourceState):
             for j in range(sourceState[i+5]):
                 mult *= effect_Upgrade[i][j+1]
             pr += baseproduction[i]*sourceState[i]*mult
-    return pr
+    return float(pr)
 
 
 def UpgradePossible(currentState, ident):
     if ident == 0 and currentState[ident]<100:
         return True
     elif ident == 1 and currentState[ident]<100:
-        return False
+        return True
     elif ident == 2 and currentState[ident]<100:
         return True
     elif ident == 3 and currentState[ident]<100:
@@ -64,18 +65,20 @@ def Weight(cost, PR):
     return cost/PR
 
 
-def AddNode(G, state,  oldCost,newCost):
+def AddNode(G, state,  oldCost,newCost, PR):
     G.add_node(str(state), DoSuccessors = True, allTimeBaked=int(oldCost+newCost))
+    G.add_edge(str(state), 'end', weight = (1e6-(oldCost+newCost))/PR)
 
 
 def AddNodesAndEdges(G,state, newState, i, upperLimit):
     PR = ProductionRate(state)
+    oldCost = G.nodes[str(state)]["allTimeBaked"]
     newCost = UpgradeCost(state, i)
     weight = Weight(newCost, PR)
-    if weight < upperLimit:
-        AddNode(G, newState, G.nodes[str(state)]["allTimeBaked"],newCost)
+    if weight<(1e6-(oldCost+newCost))/PR and weight<upperLimit:
+        AddNode(G, newState, oldCost ,newCost, PR)
         G.add_edge(str(state), str(newState), weight = weight)
-        G.add_edge(str(state), 'end', weight = (1e6-G.nodes[str(state)]["allTimeBaked"])/PR)
+        
 
 def AddSuccessors(G, state, upperLimit):
     for i in range(len(state)):
@@ -87,24 +90,22 @@ def AddSuccessors(G, state, upperLimit):
 
 def main():
     zero = [1]+[0]*9
-    F.add_node(str(zero), state=zero, DoSuccessors = True, allTimeBaked=15)
-    F.add_node('end' )
-    #nx.write_gpickle(F,'graph.gpickle')
-    upperLimit= 66*60
-    for i in range(20):
-        #G = nx.read_gpickle('graph.gpickle')
-        G=F
-        # if i > 20:
-        #     upperLimit = 40
+    G.add_node(str(zero), state=zero, DoSuccessors = True, allTimeBaked=15)
+    G.add_node('end' )
+    upperLimit= 42*60 
+    #record by simulation 49 min with range 100 and no grandmas
+    start = time.time()
+    for i in range(100):
+        start_loop = time.time()
         for name in list(G.nodes):
             if G.nodes[name].get('DoSuccessors'):
                 AddSuccessors(G, ast.literal_eval(name), upperLimit)
         print('Iteration', i, 'Nodes:', len(G.nodes))
         print('Iteration', i, 'Edges:', len(G.edges))
-        # print(nx.node_link_data(G))
-
-        #nx.write_gpickle(G,'graph.gpickle')
-
+        end_loop = time.time()
+        print(end_loop-start_loop)
+    end = time.time()
+    print('Full time:', end-start)
     shortest_path = nx.shortest_path(G, source=str(zero), target='end', weight ='weight', method='dijkstra') #'bellman-ford', 'dijkstra'
     print(shortest_path)
     print(len(shortest_path))
