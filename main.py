@@ -41,20 +41,16 @@ def ProductionRate(sourceState):
 
 
 def UpgradePossible(currentState, ident):
-    if ident == 0 and currentState[ident]<24:
+    if ident == 0 and currentState[ident]<100:
         return True
-    elif ident == 1 and currentState[ident]<41:
-        if currentState[ident-1] > 0:
-            return True
-    elif ident == 2 and currentState[ident]<28:
-        if currentState[ident-1] > 0:
-            return True
-    elif ident == 3 and currentState[ident]<17:
-        if currentState[ident-1] > 0:
-            return True
-    elif ident == 4 and currentState[ident]<2:
-        if currentState[ident-1] > 0:
-            return True
+    elif ident == 1 and currentState[ident]<100:
+        return False
+    elif ident == 2 and currentState[ident]<100:
+        return True
+    elif ident == 3 and currentState[ident]<100:
+        return True
+    elif ident == 4 and currentState[ident]<100:
+        return True
     elif ident < 5:
         return False
     else:
@@ -64,22 +60,22 @@ def UpgradePossible(currentState, ident):
             return False
 
 
-def Weight(state, PR, ident):
-    cost = UpgradeCost(state, ident)
+def Weight(cost, PR):
     return cost/PR
 
 
-def AddNode(G, state):
-    G.add_node(str(state), DoSuccessors = True)
+def AddNode(G, state,  oldCost,newCost):
+    G.add_node(str(state), DoSuccessors = True, allTimeBaked=int(oldCost+newCost))
 
 
 def AddNodesAndEdges(G,state, newState, i, upperLimit):
     PR = ProductionRate(state)
-    weight = Weight(state, PR, i)
+    newCost = UpgradeCost(state, i)
+    weight = Weight(newCost, PR)
     if weight < upperLimit:
-        AddNode(G, newState)
+        AddNode(G, newState, G.nodes[str(state)]["allTimeBaked"],newCost)
         G.add_edge(str(state), str(newState), weight = weight)
-        G.add_edge(str(state), 'end', weight = 1e6/PR)
+        G.add_edge(str(state), 'end', weight = (1e6-G.nodes[str(state)]["allTimeBaked"])/PR)
 
 def AddSuccessors(G, state, upperLimit):
     for i in range(len(state)):
@@ -91,15 +87,15 @@ def AddSuccessors(G, state, upperLimit):
 
 def main():
     zero = [1]+[0]*9
-    F.add_node(str(zero), state=zero, DoSuccessors = True)
+    F.add_node(str(zero), state=zero, DoSuccessors = True, allTimeBaked=15)
     F.add_node('end' )
     #nx.write_gpickle(F,'graph.gpickle')
-    upperLimit= 200
-    for i in range(100):
+    upperLimit= 66*60
+    for i in range(20):
         #G = nx.read_gpickle('graph.gpickle')
         G=F
-        if i > 20:
-            upperLimit = 40
+        # if i > 20:
+        #     upperLimit = 40
         for name in list(G.nodes):
             if G.nodes[name].get('DoSuccessors'):
                 AddSuccessors(G, ast.literal_eval(name), upperLimit)
