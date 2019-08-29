@@ -8,8 +8,8 @@ import time
 G = nx.DiGraph()
 
 
-basecost_Unit = [15, 100, 1100, 12000, 130000]
-baseproduction = [0.1, 1, 8, 47, 260]
+basecost_Unit = [15, 100, 1100, 12000, 130000, 1400000, 20000000,330000000]
+baseproduction = [0.1, 1, 8, 47, 260, 1400,7800,44000]
 
 
 def UpgradeCost(currentState, ident):
@@ -48,6 +48,7 @@ def AddSuccessors(G, state, upperLimit):
         newState[i] = newState[i]+1
         AddNodesAndEdges(G, state, newState, i, upperLimit)
     G.nodes[str(state)].pop('DoSuccessors')
+    G.nodes[str(state)].pop('allTimeBaked')
 
 def main():
     zero = [1]+[0]*9
@@ -56,7 +57,7 @@ def main():
     upperLimit= 42*60 
     #record by simulation 49 min with range 100 and no grandmas
     start = time.time()
-    for i in range(100):
+    for i in range(2):
         start_loop = time.time()
         for name in list(G.nodes):
             if G.nodes[name].get('DoSuccessors'):
