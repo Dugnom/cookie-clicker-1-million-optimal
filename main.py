@@ -42,15 +42,15 @@ def ProductionRate(sourceState):
 
 
 def UpgradePossible(currentState, ident):
-    if ident == 0 and currentState[ident]<100:
+    if ident == 0 and currentState[ident]<30:
         return True
-    elif ident == 1 and currentState[ident]<100:
+    elif ident == 1 and currentState[ident]<30:
         return True
-    elif ident == 2 and currentState[ident]<100:
+    elif ident == 2 and currentState[ident]<30:
         return True
-    elif ident == 3 and currentState[ident]<100:
+    elif ident == 3 and currentState[ident]<20:
         return True
-    elif ident == 4 and currentState[ident]<100:
+    elif ident == 4 and currentState[ident]<2:
         return True
     elif ident < 5:
         return False
@@ -87,10 +87,11 @@ def AddSuccessors(G, state, upperLimit):
             newState[i] = newState[i]+1
             AddNodesAndEdges(G, state, newState, i, upperLimit)
     G.nodes[str(state)].pop('DoSuccessors')
+    G.nodes[str(state)].pop('allTimeBaked')
 
 def main():
     zero = [1]+[0]*9
-    G.add_node(str(zero), state=zero, DoSuccessors = True, allTimeBaked=15)
+    G.add_node(str(zero), DoSuccessors = True, allTimeBaked=15)
     G.add_node('end' )
     upperLimit= 42*60 
     #record by simulation 49 min with range 100 and no grandmas
