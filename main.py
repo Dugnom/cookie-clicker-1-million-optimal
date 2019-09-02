@@ -47,15 +47,15 @@ def ProductionRate(sourceState):
 
 
 def UpgradePossible(currentState, ident):
-    if ident == 0 and currentState[ident] < 30:
+    if ident == 0 and currentState[ident] < 30 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 1 and currentState[ident] < 30:
+    elif ident == 1 and currentState[ident] < 30 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 2 and currentState[ident] < 30:
+    elif ident == 2 and currentState[ident] < 30 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 3 and currentState[ident] < 20:
+    elif ident == 3 and currentState[ident] < 20 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 4 and currentState[ident] < 2:
+    elif ident == 4 and currentState[ident] < 2 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
     elif ident < 5:
         return False
