@@ -100,7 +100,10 @@ def main():
         start_loop = time.time()
         for name in list(G.nodes):
             if G.nodes[name].get('DoSuccessors'):
-                AddSuccessors(G, ast.literal_eval(name), upperLimit)
+                if nx.shortest_path_length(G, source = str(zero), target = name, weight='weight') > upperLimit:
+                    G.remove_node(name)
+                else:
+                    AddSuccessors(G, ast.literal_eval(name), upperLimit)
         print('Iteration', i, 'Nodes:', len(G.nodes))
         print('Iteration', i, 'Edges:', len(G.edges))
         end_loop = time.time()
