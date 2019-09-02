@@ -18,6 +18,11 @@ effect_Upgrade = [[1, 2, 2, 2, 0.1], [
 baseproduction = [0.1, 1, 8, 47, 260]
 
 
+def SaveRun(text):
+    f = open('runs', 'a+')
+    f.write(text)
+
+
 def UpgradeCost(currentState, ident):
     if ident < 5:
         return np.ceil(basecost_Unit[ident]*(1.15**(currentState[ident]+1)-1.15**currentState[ident])/0.15)
@@ -30,11 +35,11 @@ def ProductionRate(sourceState):
     for i in range(len(baseproduction)):
         mult = 1
         if i == 0 and sourceState[i+5] == 4:
-            sum=0
+            sum = 0
             for k in range(1, 4):
                 sum += sourceState[k]
             mult = 8+effect_Upgrade[i][sourceState[i+5]]*sum
-        else: 
+        else:
             for j in range(sourceState[i+5]):
                 mult *= effect_Upgrade[i][j+1]
             pr += baseproduction[i]*sourceState[i]*mult
@@ -42,20 +47,20 @@ def ProductionRate(sourceState):
 
 
 def UpgradePossible(currentState, ident):
-    if ident == 0 and currentState[ident]<30:
+    if ident == 0 and currentState[ident] < 30 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 1 and currentState[ident]<30:
+    elif ident == 1 and currentState[ident] < 30 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 2 and currentState[ident]<30:
+    elif ident == 2 and currentState[ident] < 30 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 3 and currentState[ident]<20:
+    elif ident == 3 and currentState[ident] < 20 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 4 and currentState[ident]<2:
+    elif ident == 4 and currentState[ident] < 2 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
     elif ident < 5:
         return False
     else:
-        if (len(prerequisites_Upgrade[ident-5]) >currentState[ident]) and (prerequisites_Upgrade[ident-5][currentState[ident]] <= currentState[ident-5]):
+        if (len(prerequisites_Upgrade[ident-5]) > currentState[ident]) and (prerequisites_Upgrade[ident-5][currentState[ident]] <= currentState[ident-5]):
             return True
         else:
             return False
@@ -65,20 +70,21 @@ def Weight(cost, PR):
     return cost/PR
 
 
-def AddNode(G, state,  oldCost,newCost, PR):
-    G.add_node(str(state), DoSuccessors = True, allTimeBaked=int(oldCost+newCost))
-    G.add_edge(str(state), 'end', weight = (1e6-(oldCost+newCost))/PR)
+def AddNode(G, state,  oldCost, newCost, PR):
+    G.add_node(str(state), DoSuccessors=True,
+               allTimeBaked=int(oldCost+newCost))
+    G.add_edge(str(state), 'end', weight=(1e6-(oldCost+newCost))/PR)
 
 
-def AddNodesAndEdges(G,state, newState, i, upperLimit):
+def AddNodesAndEdges(G, state, newState, i, upperLimit):
     PR = ProductionRate(state)
     oldCost = G.nodes[str(state)]["allTimeBaked"]
     newCost = UpgradeCost(state, i)
     weight = Weight(newCost, PR)
-    if weight<(1e6-(oldCost+newCost))/PR and weight<upperLimit:
-        AddNode(G, newState, oldCost ,newCost, PR)
-        G.add_edge(str(state), str(newState), weight = weight)
-        
+    if weight < (1e6-(oldCost+newCost))/PR and weight < upperLimit:
+        AddNode(G, newState, oldCost, newCost, PR)
+        G.add_edge(str(state), str(newState), weight=weight)
+
 
 def AddSuccessors(G, state, upperLimit):
     for i in range(len(state)):
@@ -89,33 +95,42 @@ def AddSuccessors(G, state, upperLimit):
     G.nodes[str(state)].pop('DoSuccessors')
     G.nodes[str(state)].pop('allTimeBaked')
 
-def main():
+
+def main(iterations):
     zero = [1]+[0]*9
-    G.add_node(str(zero), DoSuccessors = True, allTimeBaked=15)
-    G.add_node('end' )
-    upperLimit= 42*60 
-    #record by simulation 49 min with range 100 and no grandmas
+    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15)
+    G.add_node('end')
+    upperLimit = 42*60
+    # record by simulation 49 min with range 100 and no grandmas
     start = time.time()
-    for i in range(100):
+    for i in range(iterations):
         start_loop = time.time()
         for name in list(G.nodes):
             if G.nodes[name].get('DoSuccessors'):
                 AddSuccessors(G, ast.literal_eval(name), upperLimit)
+        for name in list(G.nodes):
+            if G.nodes[name].get('DoSuccessors') and (nx.dijkstra_path_length(G, source=str(zero), target=name, weight='weight') > upperLimit):
+                G.remove_node(name)
+        for name in list(G.nodes):
+            if not G.nodes[name].get('DoSuccessors') and not name== 'end':
+                if G.out_degree[name] == 1:
+                    G.remove_node(name)
         print('Iteration', i, 'Nodes:', len(G.nodes))
         print('Iteration', i, 'Edges:', len(G.edges))
         end_loop = time.time()
         print(end_loop-start_loop)
     end = time.time()
     print('Full time:', end-start)
-    shortest_path = nx.shortest_path(G, source=str(zero), target='end', weight ='weight', method='dijkstra') #'bellman-ford', 'dijkstra'
-    print(shortest_path)
-    print(len(shortest_path))
-    sum = 0
-    for i in range(len(shortest_path)-1):
-        sum += G.edges[shortest_path[i],shortest_path[i+1]]['weight']
-    print(sum/60)
+    shortest_path = nx.dijkstra_path(G, source=str(zero), target='end', weight='weight')  # 'bellman-ford', 'dijkstra'
+    shortest_path_len = nx.dijkstra_path_length(G, source=str(zero), target='end', weight='weight')
 
+    output = 'Steps: '+str(iterations)+',\nestimated time: ' + str(shortest_path_len/60) + ' min,\nprocessing time: ' + str(
+        end-start)+' sec,\nnodes: ' + str(len(G.nodes))+',\nedges: ' + str(len(G.edges))+',\npath: ' + str(shortest_path)+'\n\n'
+
+    print(output)
+    SaveRun(output)
+    print('\a')
 
 
 if __name__ == "__main__":
-    main()
+    main(10)
