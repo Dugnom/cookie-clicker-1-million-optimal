@@ -121,9 +121,9 @@ def main(iterations):
         zero), target='end', weight='weight', method='dijkstra')  # 'bellman-ford', 'dijkstra'
     shortest_path_len = nx.shortest_path_length(G, source=str(
         zero), target='end', weight='weight', method='dijkstra')
-
-    output = 'Steps: '+str(iterations)+',\ntime: ' + str(shortest_path_len/60) + ' min,\nprocessing time: ' + str(
-        end-start)+' sec,\n nodes: ' + str(len(G.nodes))+',\n edges: ' + str(len(G.edges))+'\n, path: ' + str(shortest_path)+'\n\n'
+    
+    
+    output = 'Steps: '+str(iterations)+',\ntime: ' + str(shortest_path_len/60) + ' min,\nprocessing time: ' + str(end-start)+' sec,\nnodes: '+ str(len(G.nodes))+',\nedges: ' +str(len(G.edges))+',\npath: ' + str(shortest_path)+'\n\n'
 
     print(output)
     SaveRun(output)
