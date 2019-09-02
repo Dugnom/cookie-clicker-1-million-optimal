@@ -41,7 +41,7 @@ def ProductionRate(sourceState):
             mult = 8+effect_Upgrade[i][sourceState[i+5]]*sum
         else:
             for j in range(sourceState[i+5]):
-                mult *= effect_Upgrade[i][j+1]
+                mult *= effect_Upgrade[i][j]
             pr += baseproduction[i]*sourceState[i]*mult
     return float(pr)
 
@@ -60,7 +60,7 @@ def UpgradePossible(currentState, ident):
     elif ident < 5:
         return False
     else:
-        if (len(prerequisites_Upgrade[ident-5]) > currentState[ident]) and (prerequisites_Upgrade[ident-5][currentState[ident]] <= currentState[ident-5]):
+        if (len(prerequisites_Upgrade[ident-5]) > currentState[ident]+1) and (prerequisites_Upgrade[ident-5][currentState[ident]] <= currentState[ident-5]):
             return True
         else:
             return False
