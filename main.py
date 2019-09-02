@@ -128,6 +128,7 @@ def main(iterations):
 
         print('Iteration', i, 'Nodes:', len(G.nodes))
         print('Iteration', i, 'Edges:', len(G.edges))
+        print(nx.dijkstra_path_length(G, source=str(zero), target='end', weight='weight')/60)
         end_loop = time.time()
         print(end_loop-start_loop)
     end = time.time()
