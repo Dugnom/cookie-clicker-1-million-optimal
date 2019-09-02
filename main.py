@@ -70,9 +70,10 @@ def Weight(cost, PR):
     return cost/PR
 
 
-def AddNode(G, state,  oldCost, newCost, PR):
+def AddNode(G, state,  oldCost, newCost, PR, shortestTime):
     G.add_node(str(state), DoSuccessors=True,
-               allTimeBaked=int(oldCost+newCost))
+               allTimeBaked=int(oldCost+newCost),
+               shortestTime = shortestTime)
     G.add_edge(str(state), 'end', weight=(1e6-(oldCost+newCost))/PR)
 
 
@@ -81,9 +82,13 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit):
     oldCost = G.nodes[str(state)]["allTimeBaked"]
     newCost = UpgradeCost(state, i)
     weight = Weight(newCost, PR)
+    oldShortestT= G.nodes[str(state)]['shortestTime']
+    newShortestT= oldShortestT + weight
     if weight < (1e6-(oldCost+newCost))/PR and weight < upperLimit:
-        AddNode(G, newState, oldCost, newCost, PR)
+        AddNode(G, newState, oldCost, newCost, PR, newShortestT)
         G.add_edge(str(state), str(newState), weight=weight)
+        if G.nodes[str(newState)].get('shortestTime') and G.nodes[str(newState)]['shortestTime'] > newShortestT:
+                G.nodes[str(newState)]['shortestTime'] = newShortestT
 
 
 def AddSuccessors(G, state, upperLimit):
@@ -94,11 +99,12 @@ def AddSuccessors(G, state, upperLimit):
             AddNodesAndEdges(G, state, newState, i, upperLimit)
     G.nodes[str(state)].pop('DoSuccessors')
     G.nodes[str(state)].pop('allTimeBaked')
+    G.nodes[str(state)].pop('shortestTime')
 
 
 def main(iterations):
     zero = [1]+[0]*9
-    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15)
+    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime= 0)
     G.add_node('end')
     upperLimit = 42*60
     # record by simulation 49 min with range 100 and no grandmas
@@ -106,15 +112,20 @@ def main(iterations):
     for i in range(iterations):
         start_loop = time.time()
         for name in list(G.nodes):
-            if G.nodes[name].get('DoSuccessors'):
-                AddSuccessors(G, ast.literal_eval(name), upperLimit)
+            print(name)
         for name in list(G.nodes):
-            if G.nodes[name].get('DoSuccessors') and (nx.dijkstra_path_length(G, source=str(zero), target=name, weight='weight') > upperLimit):
-                G.remove_node(name)
+            if G.nodes[name].get('DoSuccessors'):
+                if G.nodes[name].allTimeBaked > upperLimit:
+                    G.remove_node(name)
+                else:
+                    AddSuccessors(G, ast.literal_eval(name), upperLimit)
+        print('1. Did the new nodes')
         for name in list(G.nodes):
             if not G.nodes[name].get('DoSuccessors') and not name== 'end':
                 if G.out_degree[name] == 1:
                     G.remove_node(name)
+        print('3. Killed the useless nodes')
+
         print('Iteration', i, 'Nodes:', len(G.nodes))
         print('Iteration', i, 'Edges:', len(G.edges))
         end_loop = time.time()
@@ -133,4 +144,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(100)
+    main(10)
