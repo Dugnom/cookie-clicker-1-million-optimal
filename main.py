@@ -106,21 +106,19 @@ def main(iterations):
     for i in range(iterations):
         start_loop = time.time()
         for name in list(G.nodes):
-            if nx.shortest_path_length(G, source=str(zero), target=name, weight='weight') > upperLimit:
+            if G.nodes[name].get('DoSuccessors'):
+                AddSuccessors(G, ast.literal_eval(name), upperLimit)
+        for name in list(G.nodes):
+            if G.nodes[name].get('DoSuccessors') and (nx.dijkstra_path_length(G, source=str(zero), target=name, weight='weight') > upperLimit):
                 G.remove_node(name)
-            else:
-                if G.nodes[name].get('DoSuccessors'):
-                    AddSuccessors(G, ast.literal_eval(name), upperLimit)
         print('Iteration', i, 'Nodes:', len(G.nodes))
         print('Iteration', i, 'Edges:', len(G.edges))
         end_loop = time.time()
         print(end_loop-start_loop)
     end = time.time()
     print('Full time:', end-start)
-    shortest_path = nx.shortest_path(G, source=str(
-        zero), target='end', weight='weight', method='dijkstra')  # 'bellman-ford', 'dijkstra'
-    shortest_path_len = nx.shortest_path_length(G, source=str(
-        zero), target='end', weight='weight', method='dijkstra')
+    shortest_path = nx.dijkstra_path(G, source=str(zero), target='end', weight='weight')  # 'bellman-ford', 'dijkstra'
+    shortest_path_len = nx.dijkstra_path_length(G, source=str(zero), target='end', weight='weight')
 
     output = 'Steps: '+str(iterations)+',\nestimated time: ' + str(shortest_path_len/60) + ' min,\nprocessing time: ' + str(
         end-start)+' sec,\nnodes: ' + str(len(G.nodes))+',\nedges: ' + str(len(G.edges))+',\npath: ' + str(shortest_path)+'\n\n'
@@ -131,4 +129,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(10)
+    main(20)
