@@ -111,6 +111,10 @@ def main(iterations):
         for name in list(G.nodes):
             if G.nodes[name].get('DoSuccessors') and (nx.dijkstra_path_length(G, source=str(zero), target=name, weight='weight') > upperLimit):
                 G.remove_node(name)
+        for name in list(G.nodes):
+            if not G.nodes[name].get('DoSuccessors') and not name== 'end':
+                if G.out_degree[name] == 1:
+                    G.remove_node(name)
         print('Iteration', i, 'Nodes:', len(G.nodes))
         print('Iteration', i, 'Edges:', len(G.edges))
         end_loop = time.time()
@@ -129,4 +133,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(20)
+    main(100)
