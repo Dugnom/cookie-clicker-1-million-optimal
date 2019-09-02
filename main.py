@@ -70,10 +70,9 @@ def Weight(cost, PR):
     return cost/PR
 
 
-def AddNode(G, state,  oldCost, newCost, PR, shortestTime):
+def AddNode(G, state,  oldCost, newCost, PR):
     G.add_node(str(state), DoSuccessors=True,
-               allTimeBaked=int(oldCost+newCost),
-               shortestTime = shortestTime)
+               allTimeBaked=int(oldCost+newCost))
     G.add_edge(str(state), 'end', weight=(1e6-(oldCost+newCost))/PR)
 
 
@@ -85,10 +84,13 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit):
     oldShortestT= G.nodes[str(state)]['shortestTime']
     newShortestT= oldShortestT + weight
     if weight < (1e6-(oldCost+newCost))/PR and weight < upperLimit:
-        AddNode(G, newState, oldCost, newCost, PR, newShortestT)
+        AddNode(G, newState, oldCost, newCost, PR)
         G.add_edge(str(state), str(newState), weight=weight)
-        if G.nodes[str(newState)].get('shortestTime') and G.nodes[str(newState)]['shortestTime'] > newShortestT:
+        if G.nodes[str(newState)].get('shortestTime'):
+            if G.nodes[str(newState)]['shortestTime'] > newShortestT:
                 G.nodes[str(newState)]['shortestTime'] = newShortestT
+        else:
+            G.nodes[str(newState)]['shortestTime'] = newShortestT
 
 
 def AddSuccessors(G, state, upperLimit):
@@ -112,10 +114,8 @@ def main(iterations):
     for i in range(iterations):
         start_loop = time.time()
         for name in list(G.nodes):
-            print(name)
-        for name in list(G.nodes):
             if G.nodes[name].get('DoSuccessors'):
-                if G.nodes[name].allTimeBaked > upperLimit:
+                if G.nodes[name]['shortestTime'] > upperLimit:
                     G.remove_node(name)
                 else:
                     AddSuccessors(G, ast.literal_eval(name), upperLimit)
@@ -144,4 +144,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(10)
+    main(100)
