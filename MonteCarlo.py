@@ -5,13 +5,17 @@ import copy
 def picknumber(x, y):
     return random.randint(x, y)
 
-
+def safelist (buildings_1,upgrades_1):
+     buildings_1, upgrades_1 = check_possibility(buildings_1, upgrades_1)
+    if check_possibility(buildings_1, upgrades_1) = True
+        buildings_0 = copy.copy(buildings_1) #Vielleicht diese Lösung?
+        upgrades_0 = copy.copy(updates_1)
 
 
 def propose_purchase(buildings_1, upgrades_1):
     randomnumber = picknumber(0, 16)
-    buildings_0 = copy.copy(buildings_1)
-    upgrades_0 = copy.copy(upgrades_1)
+    buildings_0 = copy.copy(buildings_1)# Hier ist noch ein Fehler drin, buildings_0 updated sich fortlaufend anstatt nur einmal zu beginn
+    upgrades_0 = copy.copy(upgrades_1)#hier genauso
     if randomnumber < 5:
         buildings_1[randomnumber] = buildings_1[randomnumber]+1
     elif randomnumber < 9:
