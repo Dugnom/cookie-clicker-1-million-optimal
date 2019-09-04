@@ -5,17 +5,19 @@ import copy
 def picknumber(x, y):
     return random.randint(x, y)
 
+
 def safelist (buildings_1,upgrades_1):
      buildings_1, upgrades_1 = check_possibility(buildings_1, upgrades_1)
-    if check_possibility(buildings_1, upgrades_1) = True
-        buildings_0 = copy.copy(buildings_1) #Vielleicht diese Lösung?
+    if check_possibility(buildings_1, upgrades_1) == False #Wenn check_possibility einen negativen Wert ausspuckt soll die building Liste auf den ursprünglichen Wert springen
+        buildings_1 = copy.copy(buildings_0)
+        upgrades_1 = copy.copy(upgrades_0)
+    else
+        buildings_0 = copy.copy(buildings_1) #Wenn check_possibility einen positiven Wert ausspuckt soll sich die building Liste aktualisieren 
         upgrades_0 = copy.copy(updates_1)
 
 
 def propose_purchase(buildings_1, upgrades_1):
     randomnumber = picknumber(0, 16)
-    buildings_0 = copy.copy(buildings_1)# Hier ist noch ein Fehler drin, buildings_0 updated sich fortlaufend anstatt nur einmal zu beginn
-    upgrades_0 = copy.copy(upgrades_1)#hier genauso
     if randomnumber < 5:
         buildings_1[randomnumber] = buildings_1[randomnumber]+1
     elif randomnumber < 9:
@@ -46,9 +48,9 @@ def check_possibility(buildings_1, upgrades_1):
         elif randomnumber<17 and buildings_1[3]>0:
             return buildings_1, upgrades_1
         else:
-            buildings_1 = copy.copy(buildings_0)
-            upgrades_1 = copy.copy(upgrades_0)
-            return buildings_1, upgrades_1
+            return False #check possibility soll false ausspucken wenn es nicht geht
+            
+
 
 
 buildings = [1, 0, 0, 0, 0]  # Cursor, Grandma, Farm, Mine, Factory
