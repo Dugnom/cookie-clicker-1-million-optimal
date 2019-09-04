@@ -81,8 +81,8 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit):
     oldCost = G.nodes[str(state)]["allTimeBaked"]
     newCost = UpgradeCost(state, i)
     weight = Weight(newCost, PR)
-    oldShortestT= G.nodes[str(state)]['shortestTime']
-    newShortestT= oldShortestT + weight
+    oldShortestT = G.nodes[str(state)]['shortestTime']
+    newShortestT = oldShortestT + weight
     if weight < (1e6-(oldCost+newCost))/PR and weight < upperLimit:
         AddNode(G, newState, oldCost, newCost, PR)
         G.add_edge(str(state), str(newState), weight=weight)
@@ -106,7 +106,7 @@ def AddSuccessors(G, state, upperLimit):
 
 def main(iterations):
     zero = [1]+[0]*9
-    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime= 0)
+    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0)
     G.add_node('end')
     upperLimit = 42*60
     # record by simulation 49 min with range 100 and no grandmas
@@ -119,22 +119,22 @@ def main(iterations):
                     G.remove_node(name)
                 else:
                     AddSuccessors(G, ast.literal_eval(name), upperLimit)
-        print('1. Did the new nodes')
         for name in list(G.nodes):
-            if not G.nodes[name].get('DoSuccessors') and not name== 'end':
+            if not G.nodes[name].get('DoSuccessors') and not name == 'end':
                 if G.out_degree[name] == 1:
                     G.remove_node(name)
-        print('3. Killed the useless nodes')
 
         print('Iteration', i, 'Nodes:', len(G.nodes))
         print('Iteration', i, 'Edges:', len(G.edges))
-        print(nx.dijkstra_path_length(G, source=str(zero), target='end', weight='weight')/60)
+        print(nx.dijkstra_path_length(G, source=str(
+            zero), target='end', weight='weight')/60)
         end_loop = time.time()
         print(end_loop-start_loop)
     end = time.time()
-    print('Full time:', end-start)
-    shortest_path = nx.dijkstra_path(G, source=str(zero), target='end', weight='weight')  # 'bellman-ford', 'dijkstra'
-    shortest_path_len = nx.dijkstra_path_length(G, source=str(zero), target='end', weight='weight')
+    shortest_path = nx.dijkstra_path(G, source=str(
+        zero), target='end', weight='weight')  # 'bellman-ford', 'dijkstra'
+    shortest_path_len = nx.dijkstra_path_length(
+        G, source=str(zero), target='end', weight='weight')
 
     output = 'Steps: '+str(iterations)+',\nestimated time: ' + str(shortest_path_len/60) + ' min,\nprocessing time: ' + str(
         end-start)+' sec,\nnodes: ' + str(len(G.nodes))+',\nedges: ' + str(len(G.edges))+',\npath: ' + str(shortest_path)+'\n\n'
@@ -145,4 +145,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(10)
+    main(100)
