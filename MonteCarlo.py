@@ -7,7 +7,7 @@ def picknumber(x, y):
 
 
 def safelist (buildings_1,upgrades_1):
-     buildings_1, upgrades_1 = check_possibility(buildings_1, upgrades_1)
+    buildings_1, upgrades_1 = check_possibility(buildings_1, upgrades_1)
     if check_possibility(buildings_1, upgrades_1) == False #Wenn check_possibility einen negativen Wert ausspuckt soll die building Liste auf den ursprünglichen Wert springen
         buildings_1 = copy.copy(buildings_0)
         upgrades_1 = copy.copy(upgrades_0)
@@ -18,6 +18,7 @@ def safelist (buildings_1,upgrades_1):
 
 def propose_purchase(buildings_1, upgrades_1):
     randomnumber = picknumber(0, 16)
+    buildings_1, upgrades_1 = safelist (buildings_1,upgrades_1)
     if randomnumber < 5:
         buildings_1[randomnumber] = buildings_1[randomnumber]+1
     elif randomnumber < 9:
