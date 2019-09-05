@@ -5,8 +5,6 @@ import json
 import ast
 import time
 
-G = nx.DiGraph()
-
 
 basecost_Unit = [15, 100, 1100, 12000, 130000]
 cost_Upgrade = [[100, 500, 12000, 100000], [1000, 5000, 20000],
@@ -85,12 +83,13 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit):
     newShortestT = oldShortestT + weight
     if weight < (1e6-(oldCost+newCost))/PR and weight < upperLimit:
         AddNode(G, newState, oldCost, newCost, PR)
-        G.add_edge(str(state), str(newState), weight=weight)
         if G.nodes[str(newState)].get('shortestTime'):
             if G.nodes[str(newState)]['shortestTime'] > newShortestT:
                 G.nodes[str(newState)]['shortestTime'] = newShortestT
+                G.remove_edge(*list(G.in_edges(str(newState)))[0])
         else:
             G.nodes[str(newState)]['shortestTime'] = newShortestT
+        G.add_edge(str(state), str(newState), weight=weight)
 
 
 def AddSuccessors(G, state, upperLimit):
@@ -103,38 +102,72 @@ def AddSuccessors(G, state, upperLimit):
     G.nodes[str(state)].pop('allTimeBaked')
     G.nodes[str(state)].pop('shortestTime')
 
+def killOrLive(G, upperLimit):
+    for name in list(G.nodes):
+        if G.nodes[name].get('DoSuccessors'):
+            if G.nodes[name]['shortestTime'] > upperLimit:
+                G.remove_node(name)
+            else:
+                AddSuccessors(G, ast.literal_eval(name), upperLimit)
+
+def killDeadEnd(G):
+    for name in list(G.nodes):
+        if not G.nodes[name].get('DoSuccessors'):
+            if G.out_degree[name] == 1:
+                G.remove_node(name)
+
+def letBestLive(G, zero, biggest):
+    survivors = {}
+    nope = []
+    for name in list(G.nodes):
+        if G.nodes[name].get('DoSuccessors'):
+            length = G.nodes[name]['shortestTime'] + G[name]['end']['weight']
+            if len(survivors) < 2000:
+                survivors[name] = length
+            else:
+                farAwayNode, biggest = max(survivors.items(), key=lambda k: k[1])
+                if length < biggest:
+                    survivors.pop(farAwayNode)
+                    nope.append(farAwayNode)
+                    survivors[name] = length
+                else: 
+                    nope.append(name)
+    G.remove_nodes_from(nope)
+    return G
+            
+
 
 def main(iterations):
+    G = nx.DiGraph()
     zero = [1]+[0]*9
     G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0)
     G.add_node('end')
+    G.add_edge(str(zero), 'end', weight= 1e7)
     upperLimit = 42*60
     # record by simulation 49 min with range 100 and no grandmas
     start = time.time()
     for i in range(iterations):
         start_loop = time.time()
-        for name in list(G.nodes):
-            if G.nodes[name].get('DoSuccessors'):
-                if G.nodes[name]['shortestTime'] > upperLimit:
-                    G.remove_node(name)
-                else:
-                    AddSuccessors(G, ast.literal_eval(name), upperLimit)
-        for name in list(G.nodes):
-            if not G.nodes[name].get('DoSuccessors') and not name == 'end':
-                if G.out_degree[name] == 1:
-                    G.remove_node(name)
+        #G= letBestLive(G, zero, upperLimit)
+
+        killOrLive(G, upperLimit)
+        print('Decided to kill the node or do the successors')
+        
+        killDeadEnd(G)
+        print('Checked for dead ends and killed the nodes')
+
 
         print('Iteration', i, 'Nodes:', len(G.nodes))
         print('Iteration', i, 'Edges:', len(G.edges))
-        print(nx.dijkstra_path_length(G, source=str(
-            zero), target='end', weight='weight')/60)
         end_loop = time.time()
         print(end_loop-start_loop)
     end = time.time()
-    shortest_path = nx.dijkstra_path(G, source=str(
-        zero), target='end', weight='weight')  # 'bellman-ford', 'dijkstra'
+    print('Full time:', end-start)
     shortest_path_len = nx.dijkstra_path_length(
         G, source=str(zero), target='end', weight='weight')
+    print(shortest_path_len/60)
+    shortest_path = nx.dijkstra_path(G, source=str(
+        zero), target='end', weight='weight')  # 'bellman-ford', 'dijkstra'
 
     output = 'Steps: '+str(iterations)+',\nestimated time: ' + str(shortest_path_len/60) + ' min,\nprocessing time: ' + str(
         end-start)+' sec,\nnodes: ' + str(len(G.nodes))+',\nedges: ' + str(len(G.edges))+',\npath: ' + str(shortest_path)+'\n\n'
@@ -143,6 +176,5 @@ def main(iterations):
     SaveRun(output)
     print('\a')
 
-
 if __name__ == "__main__":
-    main(100)
+    main(10)
