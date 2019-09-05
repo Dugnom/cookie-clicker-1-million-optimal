@@ -39,26 +39,26 @@ def ProductionRate(sourceState):
             mult = 8+effect_Upgrade[i][sourceState[i+5]]*sum
         else:
             for j in range(sourceState[i+5]):
-                mult *= effect_Upgrade[i][j+1]
+                mult *= effect_Upgrade[i][j]
             pr += baseproduction[i]*sourceState[i]*mult
     return float(pr)
 
 
 def UpgradePossible(currentState, ident):
-    if ident == 0 and currentState[ident] < 30:
+    if ident == 0 and currentState[ident] < 30 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 1 and currentState[ident] < 30:
+    elif ident == 1 and currentState[ident] < 30 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 2 and currentState[ident] < 30:
+    elif ident == 2 and currentState[ident] < 30 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 3 and currentState[ident] < 20:
+    elif ident == 3 and currentState[ident] < 20 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
-    elif ident == 4 and currentState[ident] < 2:
+    elif ident == 4 and currentState[ident] < 2 and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident+5):
         return True
     elif ident < 5:
         return False
     else:
-        if (len(prerequisites_Upgrade[ident-5]) > currentState[ident]) and (prerequisites_Upgrade[ident-5][currentState[ident]] <= currentState[ident-5]):
+        if (len(prerequisites_Upgrade[ident-5]) > currentState[ident]+1) and (prerequisites_Upgrade[ident-5][currentState[ident]] <= currentState[ident-5]):
             return True
         else:
             return False
@@ -81,7 +81,6 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit):
     weight = Weight(newCost, PR)
     oldShortestT = G.nodes[str(state)]['shortestTime']
     newShortestT = oldShortestT + weight
-
     if weight < (1e6-(oldCost+newCost))/PR and weight < upperLimit:
         AddNode(G, newState, oldCost, newCost, PR)
         if G.nodes[str(newState)].get('shortestTime'):
@@ -149,7 +148,6 @@ def main(iterations):
     start = time.time()
     for i in range(iterations):
         start_loop = time.time()
-        
         #G= letBestLive(G, zero, upperLimit)
 
         killOrLive(G, upperLimit)
