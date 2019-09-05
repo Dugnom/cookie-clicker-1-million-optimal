@@ -84,12 +84,13 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit):
 
     if weight < (1e6-(oldCost+newCost))/PR and weight < upperLimit:
         AddNode(G, newState, oldCost, newCost, PR)
-        G.add_edge(str(state), str(newState), weight=weight)
         if G.nodes[str(newState)].get('shortestTime'):
             if G.nodes[str(newState)]['shortestTime'] > newShortestT:
                 G.nodes[str(newState)]['shortestTime'] = newShortestT
+                G.remove_edge(*list(G.in_edges(str(newState)))[0])
         else:
             G.nodes[str(newState)]['shortestTime'] = newShortestT
+        G.add_edge(str(state), str(newState), weight=weight)
 
 
 def AddSuccessors(G, state, upperLimit):
@@ -157,4 +158,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(20)
+    main(30)
