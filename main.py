@@ -148,7 +148,6 @@ def main(iterations):
     start = time.time()
     for i in range(iterations):
         start_loop = time.time()
-        
         #G= letBestLive(G, zero, upperLimit)
 
         killOrLive(G, upperLimit)
