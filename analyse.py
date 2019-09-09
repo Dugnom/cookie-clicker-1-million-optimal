@@ -9,5 +9,6 @@ with open("ccSolutions") as f:
         list2.append(kleinsterwert)
 
 print(min(list2))
+
 plt.plot(list2)
 plt.show()
