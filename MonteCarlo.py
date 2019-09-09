@@ -136,9 +136,12 @@ def one_loop():
     time = 0
     cp = 15
 
-    print(buildings,upgrades)
+    solution = []
+
+    #print(buildings,upgrades)
     for i in range(10000):
         #print(i)
+        solution.append((buildings, upgrades))
         buildings,upgrades, randomnumber=check_possibility(buildings,upgrades)
         costs = check_current_costs(buildings,upgrades,randomnumber)
         cpr= production_rate(buildings,upgrades)
@@ -146,19 +149,23 @@ def one_loop():
         time = t_gesamt(time, delta_t)
         time_in_min = conversion(time)
         cp = cookies_produced(cpr_alt, delta_t, cp)
-        print(buildings, upgrades, costs, "costs", cpr, "cpr", delta_t, "delta_t", time, time_in_min, "time", cp, "cp")
+        #print(buildings, upgrades, costs, "costs", cpr, "cpr", delta_t, "delta_t", time, time_in_min, "time", cp, "cp")
         if cp >= 1e6:
-            delta_t_final = (1e6-cp_alt)/(cpr_alt*60)
-            t_final = (time_alt/60) + delta_t_final
-            print(t_final, "min", "Gesamt Dauer")
+            #print(t_final, "min", "Gesamt Dauer")
             break
         cpr_alt = cpr
         cp_alt = cp
         time_alt = time
-
+    delta_t_final = (1e6-cp_alt)/(cpr_alt*60)
+    t_final = round((time_alt/60) + delta_t_final, 2)
+    f = open('ccSolutions', 'a+')
+    f.write(str(t_final) + " " + str(solution) + "\n" )
+    
 
 
 def main():
-    for i in range(10000):
+    for i in range(1000):
         one_loop()
-        print("stop")
+        #print("stop")
+
+main()
