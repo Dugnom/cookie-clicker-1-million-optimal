@@ -54,21 +54,22 @@ def check_possibility(buildings_0, upgrades_0):
         buildings_1, upgrades_1, buildings_0, upgrades_0, randomnumber = propose_purchase(buildings_0, upgrades_0)
         if randomnumber<5:
             x = False
-            return buildings_1, upgrades_1, randomnumber
+
         elif 4<randomnumber<9 and buildings_1[0]>0 and upgrades_1[0][randomnumber-5]<2 and buildings_0[0] >= cursor_upgrade_conditions[randomnumber-5]:
             x = False
-            return buildings_1, upgrades_1, randomnumber
+
         elif 8<randomnumber<12 and buildings_1[1]>0 and upgrades_1[1][randomnumber-9]<2 and buildings_0[1] >= grandma_upgrade_conditions[randomnumber-9]:
             x = False
-            return buildings_1, upgrades_1, randomnumber
+
         elif 11<randomnumber<15 and buildings_1[2]>0 and upgrades_1[2][randomnumber-12]<2 and buildings_0[2] >= farm_upgrade_conditions[randomnumber-12]:
             x = False
-            return buildings_1, upgrades_1, randomnumber
+
         elif 14<randomnumber<17 and buildings_1[3]>0 and upgrades_1[3][randomnumber-15]<2 and buildings_0[3] >= mine_upgrade_conditions[randomnumber-15]:
             x = False
-            return buildings_1, upgrades_1, randomnumber
+            
         else:
             x = True
+    return buildings_1, upgrades_1, randomnumber
             
 def check_current_costs(buildings_1, upgrades_1, upgradenumber):
 
@@ -159,7 +160,7 @@ def one_loop():
     delta_t_final = (1e6-cp_alt)/(cpr_alt*60)
     t_final = round((time_alt/60) + delta_t_final, 2)
     f = open('ccSolutions', 'a+')
-    f.write(str(t_final) + " " + str(solution) + "\n" )
+    f.write(str(t_final) + ";" + str(solution) + "\n" )
     
 
 
