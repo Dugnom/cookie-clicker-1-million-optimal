@@ -29,47 +29,43 @@ def picknumber(x, y):
 
 
 
-def propose_purchase(buildings_1, upgrades_1):
-    randomnumber = picknumber(0, 16)
-    buildings_0 = copy.copy(buildings_1)
-    upgrades_0 = copy.deepcopy(upgrades_1)
+def do_purchase(buildings, upgrades, randomnumber):
+
+
     if randomnumber < 5:
-        buildings_1[randomnumber] = buildings_1[randomnumber]+1
+        buildings[randomnumber] = buildings[randomnumber]+1
     elif randomnumber < 9:
-        upgrades_1[0][randomnumber-5] = upgrades_1[0][randomnumber-5]+1
+        upgrades[0][randomnumber-5] = upgrades[0][randomnumber-5]+1
     elif randomnumber < 12:
-        upgrades_1[1][randomnumber-9] = upgrades_1[1][randomnumber-9]+1
+        upgrades[1][randomnumber-9] = upgrades[1][randomnumber-9]+1
     elif randomnumber < 15:
-        upgrades_1[2][randomnumber-12] = upgrades_1[2][randomnumber-12]+1
+        upgrades[2][randomnumber-12] = upgrades[2][randomnumber-12]+1
     elif randomnumber < 17:
-        upgrades_1[3][randomnumber-15] = upgrades_1[3][randomnumber-15]+1
+        upgrades[3][randomnumber-15] = upgrades[3][randomnumber-15]+1
     else:
         print("error")
-    return buildings_1, upgrades_1, buildings_0, upgrades_0, randomnumber
+    return buildings, upgrades
 
 
-def check_possibility(buildings_0, upgrades_0):
+def check_possibility(buildings, upgrades):
     x = True
+
     while x == True:
-        buildings_1, upgrades_1, buildings_0, upgrades_0, randomnumber = propose_purchase(buildings_0, upgrades_0)
+        randomnumber = picknumber(0, 16)
         if randomnumber<5:
             x = False
-
-        elif 4<randomnumber<9 and buildings_1[0]>0 and upgrades_1[0][randomnumber-5]<2 and buildings_0[0] >= cursor_upgrade_conditions[randomnumber-5]:
+        elif 4<randomnumber<9 and buildings[0]>0 and upgrades[0][randomnumber-5]<1 and buildings[0] >= cursor_upgrade_conditions[randomnumber-5]:
             x = False
-
-        elif 8<randomnumber<12 and buildings_1[1]>0 and upgrades_1[1][randomnumber-9]<2 and buildings_0[1] >= grandma_upgrade_conditions[randomnumber-9]:
+        elif 8<randomnumber<12 and buildings[1]>0 and upgrades[1][randomnumber-9]<1 and buildings[1] >= grandma_upgrade_conditions[randomnumber-9]:
             x = False
-
-        elif 11<randomnumber<15 and buildings_1[2]>0 and upgrades_1[2][randomnumber-12]<2 and buildings_0[2] >= farm_upgrade_conditions[randomnumber-12]:
+        elif 11<randomnumber<15 and buildings[2]>0 and upgrades[2][randomnumber-12]<1 and buildings[2] >= farm_upgrade_conditions[randomnumber-12]:
             x = False
-
-        elif 14<randomnumber<17 and buildings_1[3]>0 and upgrades_1[3][randomnumber-15]<2 and buildings_0[3] >= mine_upgrade_conditions[randomnumber-15]:
-            x = False
-            
+        elif 14<randomnumber<17 and buildings[3]>0 and upgrades[3][randomnumber-15]<1 and buildings[3] >= mine_upgrade_conditions[randomnumber-15]:
+            x = False           
         else:
             x = True
-    return buildings_1, upgrades_1, randomnumber
+
+    return randomnumber
             
 def check_current_costs(buildings_1, upgrades_1, upgradenumber):
 
@@ -142,8 +138,9 @@ def one_loop():
     #print(buildings,upgrades)
     for i in range(10000):
         #print(i)
-        solution.append((buildings, upgrades))
-        buildings,upgrades, randomnumber=check_possibility(buildings,upgrades)
+        solution.append((str(buildings), str(upgrades)))
+        randomnumber = check_possibility(buildings, upgrades)
+        buildings,upgrades = do_purchase(buildings,upgrades, randomnumber)
         costs = check_current_costs(buildings,upgrades,randomnumber)
         cpr= production_rate(buildings,upgrades)
         delta_t = delta_time(cpr_alt, costs)
