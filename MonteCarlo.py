@@ -2,6 +2,7 @@ import random
 import matplotlib.pyplot as plt
 import copy
 import numpy as np
+import time
 
 #upgrade_conditions:
 cursor_upgrade_conditions = [1,1,10,25]
@@ -145,7 +146,7 @@ def one_loop():
         cpr= production_rate(buildings,upgrades)
         delta_t = delta_time(cpr_alt, costs)
         time = t_gesamt(time, delta_t)
-        time_in_min = conversion(time)
+        #time_in_min = conversion(time)
         cp = cookies_produced(cpr_alt, delta_t, cp)
         #print(buildings, upgrades, costs, "costs", cpr, "cpr", delta_t, "delta_t", time, time_in_min, "time", cp, "cp")
         if cp >= 1e6:
@@ -162,8 +163,11 @@ def one_loop():
 
 
 def main():
-    for i in range(1000):
+    start = time.time()
+    for i in range(10000):
         one_loop()
-        #print("stop")
+    end= time.time()
+    print("\a")
+    print(end-start)
 
 main()
