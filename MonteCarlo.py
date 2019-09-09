@@ -48,10 +48,10 @@ def propose_purchase(buildings_1, upgrades_1):
     return buildings_1, upgrades_1, buildings_0, upgrades_0, randomnumber
 
 
-def check_possibility(buildings_1, upgrades_1):
+def check_possibility(buildings_0, upgrades_0):
     x = True
     while x == True:
-        buildings_1, upgrades_1, buildings_0, upgrades_0, randomnumber = propose_purchase(buildings_1, upgrades_1)
+        buildings_1, upgrades_1, buildings_0, upgrades_0, randomnumber = propose_purchase(buildings_0, upgrades_0)
         if randomnumber<5:
             x = False
             return buildings_1, upgrades_1, randomnumber
@@ -96,25 +96,69 @@ def check_current_costs(buildings_1, upgrades_1, upgradenumber):
 
 def production_rate(buildings, upgrades):
 
-    production_cursor = (buildings[0]*base_building_production_rate[0]+upgrades[0][3]*0.1*(np.sum(buildings)-buildings[0])*2**(np.sum(upgrades[0])-upgrades[0][3])
-    production_grandma = (buildings[1]*base_building_production_rate[1])*2(np.sum(upgrades[1]))
-    production_farm =(buildings[2]*base_building_production_rate[2])*2(np.sum(upgrades[2]))
-    production_mine =(buildings[3]*base_building_production_rate[3])*2(np.sum(upgrades[3]))
+    production_cursor = (buildings[0]*base_building_production_rate[0]+upgrades[0][3]*0.1*(np.sum(buildings)-buildings[0]))*2**(np.sum(upgrades[0])-upgrades[0][3])
+    production_grandma = (buildings[1]*base_building_production_rate[1])*2**(np.sum(upgrades[1]))
+    production_farm =(buildings[2]*base_building_production_rate[2])*2**(np.sum(upgrades[2]))
+    production_mine =(buildings[3]*base_building_production_rate[3])*2**(np.sum(upgrades[3]))
     production_factory = buildings[4]*base_building_production_rate[4]
-    cookie_production_rate = production_cursor+production_grandma+production_farm+production_mine
+    cookie_production_rate = production_cursor+production_grandma+production_farm+production_mine+production_factory
 
-    return cookie_production_rate #=cpr
+    return cookie_production_rate #=cpr /s-1
 
+def delta_time (cpr, costs):
 
-def main():
+    delta_t = costs/cpr
+
+    return delta_t
+
+def t_gesamt(t_ges, delta_t):
+
+    t_ges_1 = t_ges + delta_t
+    t_ges = t_ges_1
+
+    return t_ges
+
+def conversion(time):
+    time_in_min = time/60
+
+    return time_in_min
+
+def cookies_produced(cpr, delta_t, cp):
+    cp_1 = delta_t*cpr+cp
+    cp = cp_1
+
+    return cp
+
+def one_loop():
     buildings = [1, 0, 0, 0, 0]  # Cursor, Grandma, Farm, Mine, Factory
     upgrades = [[0, 0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0]] # Cursor, Grandma, Farm, Mine, Factory
-    
+    cpr_alt = 0.1
+    time = 0
+    cp = 15
+
     print(buildings,upgrades)
-    for i in range(100):
+    for i in range(10000):
         #print(i)
         buildings,upgrades, randomnumber=check_possibility(buildings,upgrades)
         costs = check_current_costs(buildings,upgrades,randomnumber)
         cpr= production_rate(buildings,upgrades)
-        print(buildings, upgrades, costs, cpr)
-main()
+        delta_t = delta_time(cpr_alt, costs)
+        time = t_gesamt(time, delta_t)
+        time_in_min = conversion(time)
+        cp = cookies_produced(cpr_alt, delta_t, cp)
+        print(buildings, upgrades, costs, "costs", cpr, "cpr", delta_t, "delta_t", time, time_in_min, "time", cp, "cp")
+        if cp >= 1e6:
+            delta_t_final = (1e6-cp_alt)/(cpr_alt*60)
+            t_final = (time_alt/60) + delta_t_final
+            print(t_final, "min", "Gesamt Dauer")
+            break
+        cpr_alt = cpr
+        cp_alt = cp
+        time_alt = time
+
+
+
+def main():
+    for i in range(10000):
+        one_loop()
+        print("stop")
