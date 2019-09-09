@@ -6,3 +6,6 @@ with open("ccSolutions") as f:
         list2.append(row.split(";")[0])
 
 print(min(list2))
+
+plt.hist(list2, 1000)
+plt.show()
