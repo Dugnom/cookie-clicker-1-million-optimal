@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-file = open("ccSolutions","r")
+file = open("ccSolutionTimes","r")
 
 times = []
 

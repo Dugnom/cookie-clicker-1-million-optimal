@@ -165,7 +165,7 @@ def one_loop():
 
 def main():
     start = time.time()
-    for i in range(1):
+    for i in range(80000):
         one_loop()
     end= time.time()
     print("\a")
