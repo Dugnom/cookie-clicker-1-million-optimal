@@ -127,7 +127,7 @@ def cookies_produced(cpr, delta_t, cp):
 
     return cp
 
-def one_loop():
+def one_loop(smallestTime):
     buildings = [1, 0, 0, 0, 0]  # Cursor, Grandma, Farm, Mine, Factory
     upgrades = [[0, 0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0]] # Cursor, Grandma, Farm, Mine, Factory
     cpr_alt = 0.1
@@ -146,27 +146,33 @@ def one_loop():
         cpr= production_rate(buildings,upgrades)
         delta_t = delta_time(cpr_alt, costs)
         time = t_gesamt(time, delta_t)
+        if time > smallestTime:
+            break
         #time_in_min = conversion(time)
         cp = cookies_produced(cpr_alt, delta_t, cp)
         #print(buildings, upgrades, costs, "costs", cpr, "cpr", delta_t, "delta_t", time, time_in_min, "time", cp, "cp")
         if cp >= 1e6:
+            delta_t_final = (1e6-cp_alt)/(cpr_alt*60)
+            t_final = round((time_alt/60) + delta_t_final, 2)
+            if t_final < smallestTime:
+                f = open('ccSolutions', 'a+')
+                f.write(str(t_final) + ";" + str(solution) + "\n" )
+                g = open('ccSolutionTimes', 'a+')
+                g.write(str(t_final) + "\n" )
+                #smallestTime = t_final
             #print(t_final, "min", "Gesamt Dauer")
             break
         cpr_alt = cpr
         cp_alt = cp
         time_alt = time
-    delta_t_final = (1e6-cp_alt)/(cpr_alt*60)
-    t_final = round((time_alt/60) + delta_t_final, 2)
-    f = open('ccSolutions', 'a+')
-    f.write(str(t_final) + ";" + str(solution) + "\n" )
-    
-    g = open('ccSolutionTimes', 'a+')
-    g.write(str(t_final) + "\n" )
+
 
 def main():
+    
+    smallestTime=60*60
     start = time.time()
-    for i in range(80000):
-        one_loop()
+    for i in range(100000):
+        one_loop(smallestTime)
     end= time.time()
     print("\a")
     print(end-start)
