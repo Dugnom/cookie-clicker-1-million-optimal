@@ -77,15 +77,15 @@ def check_current_costs(buildings_1, upgrades_1, upgradenumber):
     elif 4<upgradenumber<9:
         a = upgrades_1[0][upgradenumber-5]-1 # current number of upgrades
         b = upgrades_1[0][upgradenumber-5] # proposed number of upgrades
-        costs = (cursor_upgrade_prices[upgradenumber-5]*(1.15**(b)-1.15**(a)))/0.15
+        costs = (grandma_upgrade_prices[upgradenumber-5]*(1.15**(b)-1.15**(a)))/0.15
     elif 8<upgradenumber<12:
         a = upgrades_1[1][upgradenumber-9]-1 # current number of upgrades
         b = upgrades_1[1][upgradenumber-9] # proposed number of upgrades
-        costs = (cursor_upgrade_prices[upgradenumber-9]*(1.15**(b)-1.15**(a)))/0.15
+        costs = (farm_upgrade_prices[upgradenumber-9]*(1.15**(b)-1.15**(a)))/0.15
     elif 11<upgradenumber<15:
         a = upgrades_1[2][upgradenumber-12]-1 # current number of upgrades
         b = upgrades_1[2][upgradenumber-12] # proposed number of upgrades
-        costs = (cursor_upgrade_prices[upgradenumber-12]*(1.15**(b)-1.15**(a)))/0.15
+        costs = (mine_upgrade_prices[upgradenumber-12]*(1.15**(b)-1.15**(a)))/0.15
     elif 14<upgradenumber<17:
         a = upgrades_1[3][upgradenumber-15]-1 # current number of upgrades
         b = upgrades_1[3][upgradenumber-15] # proposed number of upgrades
@@ -160,11 +160,12 @@ def one_loop():
     f = open('ccSolutions', 'a+')
     f.write(str(t_final) + ";" + str(solution) + "\n" )
     
-
+    g = open('ccSolutionTimes', 'a+')
+    g.write(str(t_final) + "\n" )
 
 def main():
     start = time.time()
-    for i in range(40000):
+    for i in range(1):
         one_loop()
     end= time.time()
     print("\a")
