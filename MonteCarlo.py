@@ -161,6 +161,7 @@ def one_loop(smallestTime):
                 g.write(str(t_final) + "\n" )
                 #smallestTime = t_final
             #print(t_final, "min", "Gesamt Dauer")
+            print(t_final)
             break
         cpr_alt = cpr
         cp_alt = cp
@@ -169,10 +170,14 @@ def one_loop(smallestTime):
 
 def main():
     
-    smallestTime=45*60
+    smallestTime=50*60
     start = time.time()
-    for i in range(50000000):
+    iterations = 0
+    while time.time()-start<60*60*4:
         one_loop(smallestTime)
+        iterations += 1
+        if iterations%1e6 == 0:
+            print(iterations/1e6)
     end= time.time()
     print("\a")
     print(end-start)

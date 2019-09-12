@@ -3,6 +3,9 @@ runs
 .vscode/settings.json
 cc1million.db
 ccSolutions
+Log.txt
+dist/MonteCarlo.ex
+__pycache__/MonteCarlo.cpython-37.pyc
 ccSolutionTimes
 ccSolutionTimes alt
 ccSolutions alt
