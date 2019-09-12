@@ -3,3 +3,6 @@ runs
 .vscode/settings.json
 cc1million.db
 ccSolutions
+Log.txt
+dist/MonteCarlo.exe
+ccSolutionTimes
