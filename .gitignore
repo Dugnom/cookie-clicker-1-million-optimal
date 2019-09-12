@@ -4,6 +4,8 @@ runs
 cc1million.db
 ccSolutions
 Log.txt
-dist/MonteCarlo.exe
-ccSolutionTimes
+dist/MonteCarlo.ex
 __pycache__/MonteCarlo.cpython-37.pyc
+ccSolutionTimes
+ccSolutionTimes alt
+ccSolutions alt
