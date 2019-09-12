@@ -6,3 +6,4 @@ ccSolutions
 Log.txt
 dist/MonteCarlo.exe
 ccSolutionTimes
+__pycache__/MonteCarlo.cpython-37.pyc
