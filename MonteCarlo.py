@@ -128,11 +128,11 @@ def cookies_produced(cpr, delta_t, cp):
     return cp
 
 def one_loop(smallestTime):
-    buildings = [1, 0, 0, 0, 0]  # Cursor, Grandma, Farm, Mine, Factory
+    buildings = [5, 1, 0, 0, 0]  # Cursor, Grandma, Farm, Mine, Factory
     upgrades = [[0, 0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0]] # Cursor, Grandma, Farm, Mine, Factory
-    cpr_alt = 0.1
-    time = 0
-    cp = 15
+    cpr_alt = 1.5
+    time = 180+20/0.2+23/0.3+27/0.4+100/0.5
+    cp = 203
 
     solution = []
 
@@ -161,6 +161,7 @@ def one_loop(smallestTime):
                 g.write(str(t_final) + "\n" )
                 #smallestTime = t_final
             #print(t_final, "min", "Gesamt Dauer")
+            print(t_final)
             break
         cpr_alt = cpr
         cp_alt = cp
@@ -169,10 +170,14 @@ def one_loop(smallestTime):
 
 def main():
     
-    smallestTime=60*60
+    smallestTime=50*60
     start = time.time()
-    for i in range(100000):
+    iterations = 0
+    while time.time()-start<60*60*4:
         one_loop(smallestTime)
+        iterations += 1
+        if iterations%1e6 == 0:
+            print(iterations/1e6)
     end= time.time()
     print("\a")
     print(end-start)
