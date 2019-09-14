@@ -170,10 +170,10 @@ def one_loop(smallestTime):
 
 def main():
     
-    smallestTime=50*60
+    smallestTime=42*60
     start = time.time()
     iterations = 0
-    while time.time()-start<60*60*4:
+    while True:
         one_loop(smallestTime)
         iterations += 1
         if iterations%1e6 == 0:
