@@ -4,6 +4,7 @@ import pickle
 import json
 import ast
 import time
+import matplotlib.pyplot as plt
 
 
 basecost_Unit = [15, 100, 1100, 12000, 130000]
@@ -33,12 +34,13 @@ def ProductionRate(sourceState):
     for i in range(len(baseproduction)):
         mult = 1
         if i == 0 and sourceState[i+5] == 4:
+            print('KRASSES UPDATE')
             sum = 0
             for k in range(1, 4):
                 sum += sourceState[k]
             mult = 8+effect_Upgrade[i][sourceState[i+5]]*sum
         else:
-            for j in range(sourceState[i+5]):
+            for j in range(sourceState[i+5]+1):
                 mult *= effect_Upgrade[i][j]
             pr += baseproduction[i]*sourceState[i]*mult
     return float(pr)
@@ -71,7 +73,6 @@ def Weight(cost, PR):
 def AddNode(G, state,  oldCost, newCost, PR):
     G.add_node(str(state), DoSuccessors=True,
                allTimeBaked=int(oldCost+newCost))
-    G.add_edge(str(state), 'end', weight=(1e6-(oldCost+newCost))/PR)
 
 
 def AddNodesAndEdges(G, state, newState, i, upperLimit):
@@ -79,17 +80,24 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit):
     oldCost = G.nodes[str(state)]["allTimeBaked"]
     newCost = UpgradeCost(state, i)
     weight = Weight(newCost, PR)
-    oldShortestT = G.nodes[str(state)]['shortestTime']
-    newShortestT = oldShortestT + weight
+    oldShortestT = np.round(G.nodes[str(state)]['shortestTime'], 10)
+    newShortestT = np.round(oldShortestT + weight, 10)
     if weight < (1e6-(oldCost+newCost))/PR and weight < upperLimit:
         AddNode(G, newState, oldCost, newCost, PR)
         if G.nodes[str(newState)].get('shortestTime'):
             if G.nodes[str(newState)]['shortestTime'] > newShortestT:
                 G.nodes[str(newState)]['shortestTime'] = newShortestT
                 G.remove_edge(*list(G.in_edges(str(newState)))[0])
+                G.add_edge(str(state), str(newState), weight=weight)
         else:
             G.nodes[str(newState)]['shortestTime'] = newShortestT
-        G.add_edge(str(state), str(newState), weight=weight)
+            G.add_edge(str(state), str(newState), weight=weight)
+        timeUntilEnd = G.nodes[str(newState)]['shortestTime'] + \
+            np.round((1e6-(oldCost+newCost))/PR, 10)
+        if timeUntilEnd < G.nodes['end']['shortestTime']:
+            G.nodes['end']['shortestTime'] = timeUntilEnd
+            G.remove_edge(*list(G.in_edges('end'))[0])
+            G.add_edge(str(newState), 'end', weight=(1e6-(oldCost+newCost))/PR)
 
 
 def AddSuccessors(G, state, upperLimit):
@@ -102,6 +110,7 @@ def AddSuccessors(G, state, upperLimit):
     G.nodes[str(state)].pop('allTimeBaked')
     G.nodes[str(state)].pop('shortestTime')
 
+
 def killOrLive(G, upperLimit):
     for name in list(G.nodes):
         if G.nodes[name].get('DoSuccessors'):
@@ -110,11 +119,18 @@ def killOrLive(G, upperLimit):
             else:
                 AddSuccessors(G, ast.literal_eval(name), upperLimit)
 
+
 def killDeadEnd(G):
-    for name in list(G.nodes):
-        if not G.nodes[name].get('DoSuccessors'):
-            if G.out_degree[name] == 1:
-                G.remove_node(name)
+    counter = 1
+    while counter != 0:
+        counter = 0
+        for name in list(G.nodes):
+            if not G.nodes[name].get('DoSuccessors') and name != 'end':
+                if G.out_degree[name] == 0:
+                    G.remove_node(name)
+                    counter += 1
+        print('Dead ends killed:', counter)
+
 
 def letBestLive(G, zero, biggest):
     survivors = {}
@@ -125,42 +141,55 @@ def letBestLive(G, zero, biggest):
             if len(survivors) < 2000:
                 survivors[name] = length
             else:
-                farAwayNode, biggest = max(survivors.items(), key=lambda k: k[1])
+                farAwayNode, biggest = max(
+                    survivors.items(), key=lambda k: k[1])
                 if length < biggest:
                     survivors.pop(farAwayNode)
                     nope.append(farAwayNode)
                     survivors[name] = length
-                else: 
+                else:
                     nope.append(name)
     G.remove_nodes_from(nope)
     return G
-            
 
 
 def main(iterations):
     G = nx.DiGraph()
     zero = [1]+[0]*9
     G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0)
-    G.add_node('end')
-    G.add_edge(str(zero), 'end', weight= 1e7)
+    G.add_node('end', shortestTime=1e8)
+    G.add_edge(str(zero), 'end', weight=1e7)
     upperLimit = 42*60
+    numberNodes = [2]
+    timesList =[]
     # record by simulation 49 min with range 100 and no grandmas
     start = time.time()
     for i in range(iterations):
+        bestTime = G.nodes['end']['shortestTime']
         start_loop = time.time()
-        #G= letBestLive(G, zero, upperLimit)
 
         killOrLive(G, upperLimit)
-        print('Decided to kill the node or do the successors')
-        
-        killDeadEnd(G)
-        print('Checked for dead ends and killed the nodes')
 
+        killDeadEnd(G)
 
         print('Iteration', i, 'Nodes:', len(G.nodes))
-        print('Iteration', i, 'Edges:', len(G.edges))
+        print('Time:', G.nodes['end']['shortestTime']/60, 'minutes')
+        numberNodes.append(len(G.nodes))
+        if G.nodes['end']['shortestTime']/60 < 150:
+            timesList.append(G.nodes['end']['shortestTime']/60)
+        plt.ion()
+        plt.subplot(211)
+        plt.plot( numberNodes, 'ro')
+        plt.subplot(212)
+        plt.plot( timesList, 'bx')
+        plt.show()
+        plt.draw()
+        plt.pause(0.001)
         end_loop = time.time()
         print(end_loop-start_loop)
+        if bestTime == G.nodes['end']['shortestTime']:
+            print('It doesn\'t get better!')
+            break
     end = time.time()
     print('Full time:', end-start)
     shortest_path_len = nx.dijkstra_path_length(
@@ -176,5 +205,6 @@ def main(iterations):
     SaveRun(output)
     print('\a')
 
+
 if __name__ == "__main__":
-    main(10)
+    main(100)
