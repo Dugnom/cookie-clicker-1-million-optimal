@@ -42,7 +42,7 @@ def ProductionRate(sourceState):
         else:
             for j in range(sourceState[i+5]+1):
                 mult *= effect_Upgrade[i][j]
-            pr += baseproduction[i]*sourceState[i]*mult
+        pr += baseproduction[i]*sourceState[i]*mult
     return float(pr)
 
 
@@ -131,27 +131,21 @@ def killDeadEnd(G):
                     counter += 1
         print('Dead ends killed:', counter)
 
+def plotting(numberNodes, timesList):
+    plt.ion()
+    plt.subplot(211)
+    plt.plot( numberNodes, 'ro')
+    plt.subplot(212)
+    plt.plot( timesList, 'bx')
+    plt.show()
+    plt.draw()
+    plt.pause(0.001)
 
-def letBestLive(G, zero, biggest):
-    survivors = {}
-    nope = []
-    for name in list(G.nodes):
-        if G.nodes[name].get('DoSuccessors'):
-            length = G.nodes[name]['shortestTime'] + G[name]['end']['weight']
-            if len(survivors) < 2000:
-                survivors[name] = length
-            else:
-                farAwayNode, biggest = max(
-                    survivors.items(), key=lambda k: k[1])
-                if length < biggest:
-                    survivors.pop(farAwayNode)
-                    nope.append(farAwayNode)
-                    survivors[name] = length
-                else:
-                    nope.append(name)
-    G.remove_nodes_from(nope)
-    return G
+def fullPath(G, zero):
+    return nx.dijkstra_path(G, source=str( zero), target='end', weight='weight')
 
+def pathLen(G, zero):
+    return nx.dijkstra_path_length( G, source=str(zero), target='end', weight='weight')
 
 def main(iterations):
     G = nx.DiGraph()
@@ -177,14 +171,15 @@ def main(iterations):
         numberNodes.append(len(G.nodes))
         if G.nodes['end']['shortestTime']/60 < 150:
             timesList.append(G.nodes['end']['shortestTime']/60)
-        plt.ion()
-        plt.subplot(211)
-        plt.plot( numberNodes, 'ro')
-        plt.subplot(212)
-        plt.plot( timesList, 'bx')
-        plt.show()
-        plt.draw()
-        plt.pause(0.001)
+        plotting(numberNodes, timesList)
+
+        shortest_path_len = pathLen(G, zero)
+        shortest_path = fullPath(G, zero)
+        print(shortest_path_len/60)
+        print(shortest_path)
+        for state in shortest_path:
+            if state != 'end':
+                print(state, ProductionRate(ast.literal_eval(state)))
         end_loop = time.time()
         print(end_loop-start_loop)
         if bestTime == G.nodes['end']['shortestTime']:
@@ -192,11 +187,6 @@ def main(iterations):
             break
     end = time.time()
     print('Full time:', end-start)
-    shortest_path_len = nx.dijkstra_path_length(
-        G, source=str(zero), target='end', weight='weight')
-    print(shortest_path_len/60)
-    shortest_path = nx.dijkstra_path(G, source=str(
-        zero), target='end', weight='weight')  # 'bellman-ford', 'dijkstra'
 
     output = 'Steps: '+str(iterations)+',\nestimated time: ' + str(shortest_path_len/60) + ' min,\nprocessing time: ' + str(
         end-start)+' sec,\nnodes: ' + str(len(G.nodes))+',\nedges: ' + str(len(G.edges))+',\npath: ' + str(shortest_path)+'\n\n'
@@ -204,6 +194,8 @@ def main(iterations):
     print(output)
     SaveRun(output)
     print('\a')
+
+
 
 
 if __name__ == "__main__":
