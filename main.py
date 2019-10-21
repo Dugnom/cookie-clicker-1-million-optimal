@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 basecost_Unit = [15, 100, 1100, 12000, 130000]
 cost_Upgrade = [
     [100, 500, 12000, 100000],
-    [1000, 5000, 20000],
+    [1000, 5000, 50000],
     [11000, 55000, 550000],
     [120000, 600000],
     [1300000],
@@ -33,6 +33,10 @@ def UpgradeCost(currentState, ident):
             * (1.15 ** (currentState[ident] + 1) - 1.15 ** currentState[ident])
             / 0.15
         )
+    elif ident == 10:
+        return 55000
+    elif ident == 11:
+        return 6e5
     else:
         return cost_Upgrade[ident - 5][currentState[ident]]
 
@@ -41,6 +45,14 @@ def ProductionRate(sourceState):
     pr = 0
     for i in range(len(baseproduction)):
         mult = 1
+        if i == 1 and sourceState[10] == 1:
+            mult*= 2
+        if i == 1 and sourceState[11] == 1:
+            mult*= 2
+        if i == 2 and sourceState[10] == 1:
+            mult+= 0.01 * sourceState[1]
+        if i == 3 and sourceState[11] == 1:
+            mult+= 0.01 * np.floor(sourceState[1]/2)
         if i == 0 and sourceState[i + 5] == 4:
             print("KRASSES UPDATE")
             sum = 0
@@ -87,13 +99,20 @@ def UpgradePossible(currentState, ident):
         return True
     elif ident < 5:
         return False
-    else:
+    elif ident <10:
         if (len(prerequisites_Upgrade[ident - 5]) > currentState[ident] + 1) and (
             prerequisites_Upgrade[ident - 5][currentState[ident]]
             <= currentState[ident - 5]
         ):
             return True
         else:
+            return False
+    else:
+        if ident == 10 and currentState[1] >0 and currentState[2] >14:
+            return True
+        elif ident == 11 and currentState[1] >0 and currentState[3] >14:
+            return True
+        else: 
             return False
 
 
@@ -152,15 +171,15 @@ def killOrLive(G, upperLimit):
 
 
 def killDeadEnd(G):
-    counter = 1
-    while counter != 0:
-        counter = 0
-        for name in list(G.nodes):
-            if not G.nodes[name].get("DoSuccessors") and name != "end":
-                if G.out_degree[name] == 0:
-                    G.remove_node(name)
-                    counter += 1
-        print("Dead ends killed:", counter)
+    # counter = 1
+    # while counter != 0:
+    counter = 0
+    for name in list(G.nodes):
+        if not G.nodes[name].get("DoSuccessors") and name != "end":
+            if G.out_degree[name] == 0:
+                G.remove_node(name)
+                counter += 1
+    print("Dead ends killed:", counter)
 
 
 def plotting(numberNodes, timesList):
@@ -203,14 +222,14 @@ def defineOutput(iterations, G, start, shortest_path_len, shortest_path, end):
 def printIntermediateSolution(shortest_path_len, shortest_path):
     print(shortest_path_len / 60)
     print(shortest_path)
-    for state in shortest_path:
-        if state != "end":
-            print(state, ProductionRate(ast.literal_eval(state)))
+    # for state in shortest_path:
+    #     if state != "end":
+    #         print(state, ProductionRate(ast.literal_eval(state)))
 
 
 def main(iterations):
     G = nx.DiGraph()
-    zero = [1] + [0] * 9
+    zero = [1] + [0] * 11
     G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0)
     G.add_node("end", shortestTime=1e8)
     G.add_edge(str(zero), "end", weight=1e7)
@@ -219,7 +238,7 @@ def main(iterations):
     timesList = []
     
     # record by simulation 42.3 min with range 90, this is a problem
-    
+
     start = time.time()
     for i in range(iterations):
         bestTime = G.nodes["end"]["shortestTime"]
