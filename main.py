@@ -171,15 +171,15 @@ def killOrLive(G, upperLimit):
 
 
 def killDeadEnd(G):
-    # counter = 1
-    # while counter != 0:
-    counter = 0
-    for name in list(G.nodes):
-        if not G.nodes[name].get("DoSuccessors") and name != "end":
-            if G.out_degree[name] == 0:
-                G.remove_node(name)
-                counter += 1
-    print("Dead ends killed:", counter)
+    counter = 10000
+    while counter <= 9999:
+        counter = 0
+        for name in list(G.nodes):
+            if not G.nodes[name].get("DoSuccessors") and name != "end":
+                if G.out_degree[name] == 0:
+                    G.remove_node(name)
+                    counter += 1
+        print("Dead ends killed:", counter)
 
 
 def plotting(numberNodes, timesList):
@@ -274,4 +274,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(100)
+    main(150)
