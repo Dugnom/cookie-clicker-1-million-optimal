@@ -172,7 +172,7 @@ def killOrLive(G, upperLimit):
 
 def killDeadEnd(G):
     counter = 10000
-    while counter <= 9999:
+    while counter >= 9999:
         counter = 0
         for name in list(G.nodes):
             if not G.nodes[name].get("DoSuccessors") and name != "end":
