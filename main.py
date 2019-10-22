@@ -233,11 +233,11 @@ def main(iterations):
     G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0)
     G.add_node("end", shortestTime=1e8)
     G.add_edge(str(zero), "end", weight=1e7)
-    upperLimit = 42 * 60
+    upperLimit = 41.6 * 60
     numberNodes = [2]
     timesList = []
     
-    # record by simulation 42.3 min with range 90, this is a problem
+    # record by simulation 41.5 min with range 90, this is a problem
 
     start = time.time()
     for i in range(iterations):
@@ -254,7 +254,7 @@ def main(iterations):
         if G.nodes["end"]["shortestTime"] / 60 < 150:
             timesList.append(G.nodes["end"]["shortestTime"] / 60)
         plotting(numberNodes, timesList)
-
+            
         shortest_path_len = pathLen(G, zero)
         shortest_path = fullPath(G, zero)
         printIntermediateSolution(shortest_path_len, shortest_path)
