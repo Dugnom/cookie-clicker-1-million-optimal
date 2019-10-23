@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 basecost_Unit = [15, 100, 1100, 12000, 130000]
 cost_Upgrade = [
-    [100, 500, 12000, 100000],
+    [100, 500, 10000, 100000],
     [1000, 5000, 50000],
     [11000, 55000, 550000],
     [120000, 600000],
@@ -36,7 +36,7 @@ def UpgradeCost(currentState, ident):
     elif ident == 10:
         return 55000
     elif ident == 11:
-        return 6e5
+        return 600000
     else:
         return cost_Upgrade[ident - 5][currentState[ident]]
 
