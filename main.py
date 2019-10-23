@@ -266,6 +266,7 @@ def main(iterations):
     print(output)
     SaveRun(output)
     print("\a")
+    input("Press Enter to continue...")
 
 
 if __name__ == "__main__":
