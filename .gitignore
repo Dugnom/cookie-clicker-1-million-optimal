@@ -1,3 +1,4 @@
 graph.gpickle
 runs
 .vscode/settings.json
+__pycache__
