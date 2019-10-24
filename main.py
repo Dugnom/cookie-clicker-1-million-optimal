@@ -22,7 +22,7 @@ baseproduction = [0.1, 1, 8, 47, 260]
 
 
 def SaveRun(text):
-    f = open("runs", "a+")
+    f = open("ergebnis", "r+")
     f.write(text)
 
 
@@ -248,7 +248,7 @@ def main(iterations):
         numberNodes.append(len(G.nodes))
         if G.nodes["end"]["shortestTime"] / 60 < 150:
             timesList.append(G.nodes["end"]["shortestTime"] / 60)
-        plotting(numberNodes, timesList)
+        # plotting(numberNodes, timesList)
             
         shortest_path_len = pathLen(G, zero)
         shortest_path = fullPath(G, zero)
@@ -258,10 +258,12 @@ def main(iterations):
         if bestTime == G.nodes["end"]["shortestTime"]:
             print("It doesn't get better!")
             break
+        end = time.time()
+        output = defineOutput(i, G, start, shortest_path_len, shortest_path, end)
+        SaveRun(output)
     end = time.time()
     print("Full time:", end - start)
 
-    output = defineOutput(iterations, G, start, shortest_path_len, shortest_path, end)
 
     print(output)
     SaveRun(output)
