@@ -131,7 +131,6 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit, goal):
                 G.nodes[str(newState)]["shortestTime"] = newShortestT
                 G.remove_edge(*list(G.in_edges(str(newState)))[0])
                 G.add_edge(str(state), str(newState), weight=weight)
-                print(G.nodes[str(newState)]["shortestTime"])
         else:
             G.nodes[str(newState)]["shortestTime"] = newShortestT
             G.add_edge(str(state), str(newState), weight=weight)
@@ -272,4 +271,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(10)
+    main(150)
