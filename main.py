@@ -117,53 +117,54 @@ def AddNode(G, state, oldCost, newCost, PR):
     G.add_node(str(state), DoSuccessors=True, allTimeBaked=int(oldCost + newCost))
 
 
-def AddNodesAndEdges(G, state, newState, i, upperLimit):
+def AddNodesAndEdges(G, state, newState, i, upperLimit, goal):
     PR = ProductionRate(state)
     oldCost = G.nodes[str(state)]["allTimeBaked"]
     newCost = UpgradeCost(state, i)
     weight = Weight(newCost, PR)
     oldShortestT = np.round(G.nodes[str(state)]["shortestTime"], 10)
     newShortestT = np.round(oldShortestT + weight, 10)
-    if weight < (1e6 - (oldCost + newCost)) / PR and weight < upperLimit:
+    if weight < (goal - oldCost) / PR and weight < upperLimit:
         AddNode(G, newState, oldCost, newCost, PR)
         if G.nodes[str(newState)].get("shortestTime"):
             if G.nodes[str(newState)]["shortestTime"] > newShortestT:
                 G.nodes[str(newState)]["shortestTime"] = newShortestT
                 G.remove_edge(*list(G.in_edges(str(newState)))[0])
                 G.add_edge(str(state), str(newState), weight=weight)
+                print(G.nodes[str(newState)]["shortestTime"])
         else:
             G.nodes[str(newState)]["shortestTime"] = newShortestT
             G.add_edge(str(state), str(newState), weight=weight)
         timeUntilEnd = G.nodes[str(newState)]["shortestTime"] + np.round(
-            (1e6 - (oldCost + newCost)) / PR, 10
+            (goal - (oldCost + newCost)) / PR, 10
         )
         if timeUntilEnd < G.nodes["end"]["shortestTime"]:
             G.nodes["end"]["shortestTime"] = timeUntilEnd
             G.remove_edge(*list(G.in_edges("end"))[0])
-            G.add_edge(str(newState), "end", weight=(1e6 - (oldCost + newCost)) / PR)
+            G.add_edge(str(newState), "end", weight=(goal - (oldCost + newCost)) / PR)
 
 
-def AddSuccessors(G, state, upperLimit):
+def AddSuccessors(G, state, upperLimit, goal):
     for i in range(len(state)):
         newState = list(state)
         if UpgradePossible(state, i):
             newState[i] = newState[i] + 1
-            AddNodesAndEdges(G, state, newState, i, upperLimit)
+            AddNodesAndEdges(G, state, newState, i, upperLimit, goal)
     G.nodes[str(state)].pop("DoSuccessors")
     G.nodes[str(state)].pop("allTimeBaked")
     G.nodes[str(state)].pop("shortestTime")
 
 
-def killOrLive(G, upperLimit):
+def killOrLive(G, upperLimit, goal):
     for name in list(G.nodes):
         if G.nodes[name].get("DoSuccessors"):
             if G.nodes[name]["shortestTime"] > upperLimit:
                 G.remove_node(name)
             else:
-                AddSuccessors(G, ast.literal_eval(name), upperLimit)
+                AddSuccessors(G, ast.literal_eval(name), upperLimit, goal)
 
 
-def killDeadEnd(G):
+def killDeadEnd(G): #Rework to kill whole leave or branch whatever it's called
     counter = 10000
     while counter >= 9999:
         counter = 0
@@ -229,6 +230,7 @@ def main(iterations):
     upperLimit = 41.6 * 60
     numberNodes = [2]
     timesList = []
+    goal = 300 #how many cookies should ba achieved all time?
     
     # record by simulation 41.5 min with range 90, this is a problem
 
@@ -237,7 +239,7 @@ def main(iterations):
         bestTime = G.nodes["end"]["shortestTime"]
         start_loop = time.time()
 
-        killOrLive(G, upperLimit)
+        killOrLive(G, upperLimit, goal)
 
         killDeadEnd(G)
 
@@ -270,4 +272,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(150)
+    main(10)
