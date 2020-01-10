@@ -17,7 +17,7 @@ baseproduction = [0.1, 1, 8, 47, 260]
 
 
 def OpenPath():
-    f = open("path", "r+")
+    f = open("path2", "r+")
     flist = ast.literal_eval(f.read())
     listList = []
     for string in flist:
@@ -35,6 +35,7 @@ def getUpdateOrder(path):
     return updates
 
 def main():
+    goal = 300
     path = OpenPath()
     updates = getUpdateOrder(path)
     sumUpgradeCosts = 0
@@ -42,7 +43,7 @@ def main():
     for i in range(len(updates)+1):
         print(path[i])
         if i == len(updates):
-            upgradeCost = 1e6 - sumUpgradeCosts
+            upgradeCost = goal - sumUpgradeCosts
         else:
             upgradeCost =m.UpgradeCost(path[i], updates[i])
         productionRate = m.ProductionRate(path[i])
