@@ -230,7 +230,7 @@ def main(iterations):
     upperLimit = 41.6 * 60
     numberNodes = [2]
     timesList = []
-    goal = 300 #how many cookies should ba achieved all time?
+    goal = 1e6 #how many cookies should ba achieved all time?
     
     # record by simulation 41.5 min with range 90, this is a problem
 
