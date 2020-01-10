@@ -120,12 +120,12 @@ def AddNode(G, state, oldCost, newCost, PR):
 def AddNodesAndEdges(G, state, newState, i, upperLimit, goal):
     PR = ProductionRate(state)
     oldCost = G.nodes[str(state)]["allTimeBaked"]
-    newCost = UpgradeCost(state, i)
-    weight = Weight(newCost, PR)
+    upCost = UpgradeCost(state, i)
+    weight = Weight(upCost, PR)
     oldShortestT = np.round(G.nodes[str(state)]["shortestTime"], 10)
     newShortestT = np.round(oldShortestT + weight, 10)
     if weight < (goal - oldCost) / PR and weight < upperLimit:
-        AddNode(G, newState, oldCost, newCost, PR)
+        AddNode(G, newState, oldCost, upCost, PR)
         if G.nodes[str(newState)].get("shortestTime"):
             if G.nodes[str(newState)]["shortestTime"] > newShortestT:
                 G.nodes[str(newState)]["shortestTime"] = newShortestT
@@ -136,12 +136,12 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit, goal):
             G.nodes[str(newState)]["shortestTime"] = newShortestT
             G.add_edge(str(state), str(newState), weight=weight)
         timeUntilEnd = G.nodes[str(newState)]["shortestTime"] + np.round(
-            (goal - (oldCost + newCost)) / PR, 10
+            (goal - (oldCost + upCost)) / PR, 10
         )
         if timeUntilEnd < G.nodes["end"]["shortestTime"]:
             G.nodes["end"]["shortestTime"] = timeUntilEnd
             G.remove_edge(*list(G.in_edges("end"))[0])
-            G.add_edge(str(newState), "end", weight=(goal - (oldCost + newCost)) / PR)
+            G.add_edge(str(newState), "end", weight=(goal - (oldCost + upCost)) / PR)
 
 
 def AddSuccessors(G, state, upperLimit, goal):
