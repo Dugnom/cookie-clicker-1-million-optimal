@@ -44,13 +44,13 @@ def ProductionRate(sourceState):
     for i in range(len(baseproduction)):
         mult = 1
         if i == 1 and sourceState[10] == 1:
-            mult*= 2
+            mult *= 2
         if i == 1 and sourceState[11] == 1:
-            mult*= 2
+            mult *= 2
         if i == 2 and sourceState[10] == 1:
-            mult+= 0.01 * sourceState[1]
+            mult += 0.01 * sourceState[1]
         if i == 3 and sourceState[11] == 1:
-            mult+= 0.01 * np.floor(sourceState[1]/2)
+            mult += 0.01 * np.floor(sourceState[1] / 2)
         if i == 0 and sourceState[i + 5] == 4:
             print("KRASSES UPDATE")
             sum = 0
@@ -65,34 +65,29 @@ def ProductionRate(sourceState):
 
 
 def UpgradePossible(currentState, ident):
-    if (
-        ident == 0
-        and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident + 5)
+    if ident == 0 and UpgradeCost(currentState, ident) < UpgradeCost(
+        currentState, ident + 5
     ):
         return True
-    elif (
-        ident == 1
-        and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident + 5)
+    elif ident == 1 and UpgradeCost(currentState, ident) < UpgradeCost(
+        currentState, ident + 5
     ):
         return True
-    elif (
-        ident == 2
-        and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident + 5)
+    elif ident == 2 and UpgradeCost(currentState, ident) < UpgradeCost(
+        currentState, ident + 5
     ):
         return True
-    elif (
-        ident == 3
-        and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident + 5)
+    elif ident == 3 and UpgradeCost(currentState, ident) < UpgradeCost(
+        currentState, ident + 5
     ):
         return True
-    elif (
-        ident == 4
-        and UpgradeCost(currentState, ident) < UpgradeCost(currentState, ident + 5)
+    elif ident == 4 and UpgradeCost(currentState, ident) < UpgradeCost(
+        currentState, ident + 5
     ):
         return True
     elif ident < 5:
         return False
-    elif ident <10:
+    elif ident < 10:
         if (len(prerequisites_Upgrade[ident - 5]) > currentState[ident] + 1) and (
             prerequisites_Upgrade[ident - 5][currentState[ident]]
             <= currentState[ident - 5]
@@ -101,11 +96,21 @@ def UpgradePossible(currentState, ident):
         else:
             return False
     else:
-        if ident == 10 and currentState[ident] ==0 and currentState[1] > 0 and currentState[2] >14:
+        if (
+            ident == 10
+            and currentState[ident] == 0
+            and currentState[1] > 0
+            and currentState[2] > 14
+        ):
             return True
-        elif ident == 11 and currentState[ident] ==0 and currentState[1] >0 and currentState[3] >14:
+        elif (
+            ident == 11
+            and currentState[ident] == 0
+            and currentState[1] > 0
+            and currentState[3] > 14
+        ):
             return True
-        else: 
+        else:
             return False
 
 
@@ -163,16 +168,23 @@ def killOrLive(G, upperLimit, goal):
                 AddSuccessors(G, ast.literal_eval(name), upperLimit, goal)
 
 
-def killDeadEnd(G): #Rework to kill whole leave or branch whatever it's called
-    counter = 10000
-    while counter >= 9999:
-        counter = 0
-        for name in list(G.nodes):
+def killDeadEnd(G, givenHitList):
+    counter = 0
+    hitList = []
+    print("Laenge der hitList", len(givenHitList))
+    for name in list(givenHitList):
+        if name in list(G.nodes):
             if not G.nodes[name].get("DoSuccessors") and name != "end":
                 if G.out_degree[name] == 0:
+                    hitList.extend(list(nx.ancestors(G, name)))
                     G.remove_node(name)
+                    if name in hitList:
+                        hitList.remove(name)
                     counter += 1
-        print("Dead ends killed:", counter)
+    print("Dead ends killed:", counter)
+    hitList=list(set(hitList))
+    if len(hitList) != 0:
+        killDeadEnd(G, hitList)
 
 
 def plotting(numberNodes, timesList):
@@ -222,15 +234,15 @@ def printIntermediateSolution(shortest_path_len, shortest_path):
 
 def main(iterations):
     G = nx.DiGraph()
-    zero = [1] + [0] * 11
-    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0)
+    zero = [1] + [0] * 11 #[5, 1] +[0]*10
+    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0, testAncestry=True)
     G.add_node("end", shortestTime=1e8)
     G.add_edge(str(zero), "end", weight=1e7)
     upperLimit = 41.6 * 60
     numberNodes = [2]
     timesList = []
-    goal = 1e6 #how many cookies should ba achieved all time?
-    
+    goal = 1e6  # how many cookies should ba achieved all time?
+
     # record by simulation 41.5 min with range 90, this is a problem
 
     start = time.time()
@@ -239,8 +251,8 @@ def main(iterations):
         start_loop = time.time()
 
         killOrLive(G, upperLimit, goal)
-
-        killDeadEnd(G)
+        
+        killDeadEnd(G, G.nodes)
 
         print("Iteration", i, "Nodes:", len(G.nodes))
         print("Time:", G.nodes["end"]["shortestTime"] / 60, "minutes")
@@ -248,7 +260,7 @@ def main(iterations):
         if G.nodes["end"]["shortestTime"] / 60 < 150:
             timesList.append(G.nodes["end"]["shortestTime"] / 60)
         # plotting(numberNodes, timesList)
-            
+
         shortest_path_len = pathLen(G, zero)
         shortest_path = fullPath(G, zero)
         printIntermediateSolution(shortest_path_len, shortest_path)
@@ -263,7 +275,6 @@ def main(iterations):
     end = time.time()
     print("Full time:", end - start)
 
-
     print(output)
     SaveRun(output)
     print("\a")
@@ -271,4 +282,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(150)
+    main(30)
