@@ -238,7 +238,7 @@ def main(iterations):
     G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0, testAncestry=True)
     G.add_node("end", shortestTime=1e8)
     G.add_edge(str(zero), "end", weight=1e7)
-    upperLimit = 41.6 * 60
+    upperLimit = 41.25 * 60
     numberNodes = [2]
     timesList = []
     goal = 1e6  # how many cookies should ba achieved all time?
@@ -282,4 +282,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(30)
+    main(150)
