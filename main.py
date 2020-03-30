@@ -159,23 +159,22 @@ def AddSuccessors(G, state, upperLimit, goal):
     G.nodes[str(state)].pop("allTimeBaked")
     G.nodes[str(state)].pop("shortestTime")
 
-@jit
+
 def killOrLive(G, upperLimit, goal):
     for name in list(G.nodes):
         if G.nodes[name].get("DoSuccessors"):
             if G.nodes[name]["shortestTime"] > upperLimit:
-                killDeadEnd(G, [name])
-                #G.remove_node(name)
+                G.remove_node(name)
             else:
                 AddSuccessors(G, ast.literal_eval(name), upperLimit, goal)
 
-#@jit(forceobj = True)
+@jit(forceobj = True)
 def killDeadEnd(G, givenHitList):
     counter = 0
     hitList = []
-    #print("Laenge der hitList", len(givenHitList))
+    print("Laenge der hitList", len(givenHitList))
     for name in list(givenHitList):
-        if name in list(G.nodes):
+        if [s for s in list(G.nodes) if name in s]:
             if not G.nodes[name].get("DoSuccessors") and name != "end":
                 if G.out_degree[name] == 0:
                     hitList.extend(list(nx.ancestors(G, name)))
@@ -183,6 +182,7 @@ def killDeadEnd(G, givenHitList):
                     if name in hitList:
                         hitList.remove(name)
                     counter += 1
+    print("Dead ends killed:", counter)
     hitList=list(set(hitList))
     if len(hitList)!=0:
         killDeadEnd(G, hitList)
@@ -252,9 +252,7 @@ def main(iterations):
 
         killOrLive(G, upperLimit, goal)
         
-        # hitList = G.nodes
-        # while len(hitList) !=0 and i%5 == 0:
-        #     hitList = killDeadEnd(G, hitList)
+        killDeadEnd(G, G.nodes)
 
         print("Iteration", i, "Nodes:", len(G.nodes))
         print("Time:", G.nodes["end"]["shortestTime"] / 60, "minutes")
@@ -284,4 +282,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(150)
+    main(15)
