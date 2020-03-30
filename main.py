@@ -3,6 +3,7 @@ import numpy as np
 import ast
 import time
 import matplotlib.pyplot as plt
+import copy
 
 from numba import jit, cuda 
 
@@ -155,7 +156,7 @@ def AddSuccessors(G, state, upperLimit, goal):
         if UpgradePossible(state, i):
             newState[i] = newState[i] + 1
             AddNodesAndEdges(G, state, newState, i, upperLimit, goal)
-    G.nodes[str(state)].pop("DoSuccessors")
+    G.nodes[str(state)]["DoSuccessors"] = False
     G.nodes[str(state)].pop("allTimeBaked")
     G.nodes[str(state)].pop("shortestTime")
 
@@ -168,24 +169,27 @@ def killOrLive(G, upperLimit, goal):
             else:
                 AddSuccessors(G, ast.literal_eval(name), upperLimit, goal)
 
-@jit(forceobj = True)
-def killDeadEnd(G, givenHitList):
+# @jit(forceobj = True)
+def killDeadEnd(H, givenHitList):
     counter = 0
     hitList = []
+    killList = []
     print("Laenge der hitList", len(givenHitList))
     for name in list(givenHitList):
-        if [s for s in list(G.nodes) if name in s]:
-            if not G.nodes[name].get("DoSuccessors") and name != "end":
-                if G.out_degree[name] == 0:
-                    hitList.extend(list(nx.ancestors(G, name)))
-                    G.remove_node(name)
+        if [s for s in list(H.nodes) if name in s]:
+            if not H.nodes[name].get("DoSuccessors") and name != "end":
+                if H.out_degree[name] == 0:
+                    hitList.extend(list(H.predecessors(name)))
+                    killList.append(name)
                     if name in hitList:
                         hitList.remove(name)
                     counter += 1
+    H.remove_nodes_from(killList)
     print("Dead ends killed:", counter)
     hitList=list(set(hitList))
     if len(hitList)!=0:
-        killDeadEnd(G, hitList)
+        killDeadEnd(H, hitList)
+    return H
 
 
 def plotting(numberNodes, timesList):
@@ -235,8 +239,8 @@ def printIntermediateSolution(shortest_path_len, shortest_path):
 def main(iterations):
     G = nx.DiGraph()
     zero = [1] + [0] * 11 #[5, 1] +[0]*10
-    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0, testAncestry=True)
-    G.add_node("end", shortestTime=1e8)
+    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0)
+    G.add_node("end", shortestTime=1e8,  DoSuccessors=False)
     G.add_edge(str(zero), "end", weight=1e7)
     upperLimit = 41.25 * 60
     numberNodes = [2]
@@ -250,9 +254,12 @@ def main(iterations):
         bestTime = G.nodes["end"]["shortestTime"]
         start_loop = time.time()
 
+        oldDoSuccList = [x for x,y in G.nodes(data=True) if y['DoSuccessors']==True]
+
         killOrLive(G, upperLimit, goal)
         
-        killDeadEnd(G, G.nodes)
+        if (i+1)%1==0:
+            G = killDeadEnd(copy.deepcopy(G), oldDoSuccList)
 
         print("Iteration", i, "Nodes:", len(G.nodes))
         print("Time:", G.nodes["end"]["shortestTime"] / 60, "minutes")
@@ -282,4 +289,4 @@ def main(iterations):
 
 
 if __name__ == "__main__":
-    main(15)
+    main(20)
