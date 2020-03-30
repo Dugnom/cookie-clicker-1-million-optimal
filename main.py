@@ -4,6 +4,8 @@ import ast
 import time
 import matplotlib.pyplot as plt
 
+from numba import jit, cuda 
+
 
 basecost_Unit = [15, 100, 1100, 12000, 130000]
 cost_Upgrade = [
@@ -17,7 +19,6 @@ prerequisites_Upgrade = [[1, 1, 10, 25], [1, 5, 25], [1, 5, 25], [1, 5], [1]]
 effect_Upgrade = [[1, 2, 2, 2, 0.1], [1, 2, 2, 2], [1, 2, 2, 2], [1, 2, 2], [1, 2]]
 
 baseproduction = [0.1, 1, 8, 47, 260]
-
 
 def SaveRun(text):
     f = open("ergebnis", "r+")
@@ -158,20 +159,21 @@ def AddSuccessors(G, state, upperLimit, goal):
     G.nodes[str(state)].pop("allTimeBaked")
     G.nodes[str(state)].pop("shortestTime")
 
-
+@jit
 def killOrLive(G, upperLimit, goal):
     for name in list(G.nodes):
         if G.nodes[name].get("DoSuccessors"):
             if G.nodes[name]["shortestTime"] > upperLimit:
-                G.remove_node(name)
+                killDeadEnd(G, [name])
+                #G.remove_node(name)
             else:
                 AddSuccessors(G, ast.literal_eval(name), upperLimit, goal)
 
-
+#@jit(forceobj = True)
 def killDeadEnd(G, givenHitList):
     counter = 0
     hitList = []
-    print("Laenge der hitList", len(givenHitList))
+    #print("Laenge der hitList", len(givenHitList))
     for name in list(givenHitList):
         if name in list(G.nodes):
             if not G.nodes[name].get("DoSuccessors") and name != "end":
@@ -181,9 +183,8 @@ def killDeadEnd(G, givenHitList):
                     if name in hitList:
                         hitList.remove(name)
                     counter += 1
-    print("Dead ends killed:", counter)
     hitList=list(set(hitList))
-    if len(hitList) != 0:
+    if len(hitList)!=0:
         killDeadEnd(G, hitList)
 
 
@@ -231,7 +232,6 @@ def printIntermediateSolution(shortest_path_len, shortest_path):
     #     if state != "end":
     #         print(state, ProductionRate(ast.literal_eval(state)))
 
-
 def main(iterations):
     G = nx.DiGraph()
     zero = [1] + [0] * 11 #[5, 1] +[0]*10
@@ -252,7 +252,9 @@ def main(iterations):
 
         killOrLive(G, upperLimit, goal)
         
-        killDeadEnd(G, G.nodes)
+        # hitList = G.nodes
+        # while len(hitList) !=0 and i%5 == 0:
+        #     hitList = killDeadEnd(G, hitList)
 
         print("Iteration", i, "Nodes:", len(G.nodes))
         print("Time:", G.nodes["end"]["shortestTime"] / 60, "minutes")
