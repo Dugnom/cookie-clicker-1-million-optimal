@@ -4,7 +4,6 @@ import ast
 import time
 import matplotlib.pyplot as plt
 
-
 basecost_Unit = [15, 100, 1100, 12000, 130000]
 cost_Upgrade = [
     [100, 500, 10000, 100000],
@@ -53,10 +52,10 @@ def ProductionRate(sourceState):
             mult += 0.01 * np.floor(sourceState[1] / 2)
         if i == 0 and sourceState[i + 5] == 4:
             print("KRASSES UPDATE")
-            sum = 0
+            sumOfUpgrades = 0
             for k in range(1, 4):
-                sum += sourceState[k]
-            mult = 8 + effect_Upgrade[i][sourceState[i + 5]] * sum
+                sumOfUpgrades += sourceState[k]
+            mult = 8 + effect_Upgrade[i][sourceState[i + 5]] * sumOfUpgrades
         else:
             for j in range(sourceState[i + 5] + 1):
                 mult *= effect_Upgrade[i][j]
@@ -66,48 +65,48 @@ def ProductionRate(sourceState):
 
 def UpgradePossible(currentState, ident):
     if ident == 0 and UpgradeCost(currentState, ident) < UpgradeCost(
-        currentState, ident + 5
+            currentState, ident + 5
     ):
         return True
     elif ident == 1 and UpgradeCost(currentState, ident) < UpgradeCost(
-        currentState, ident + 5
+            currentState, ident + 5
     ):
         return True
     elif ident == 2 and UpgradeCost(currentState, ident) < UpgradeCost(
-        currentState, ident + 5
+            currentState, ident + 5
     ):
         return True
     elif ident == 3 and UpgradeCost(currentState, ident) < UpgradeCost(
-        currentState, ident + 5
+            currentState, ident + 5
     ):
         return True
     elif ident == 4 and UpgradeCost(currentState, ident) < UpgradeCost(
-        currentState, ident + 5
+            currentState, ident + 5
     ):
         return True
     elif ident < 5:
         return False
     elif ident < 10:
         if (len(prerequisites_Upgrade[ident - 5]) > currentState[ident] + 1) and (
-            prerequisites_Upgrade[ident - 5][currentState[ident]]
-            <= currentState[ident - 5]
+                prerequisites_Upgrade[ident - 5][currentState[ident]]
+                <= currentState[ident - 5]
         ):
             return True
         else:
             return False
     else:
         if (
-            ident == 10
-            and currentState[ident] == 0
-            and currentState[1] > 0
-            and currentState[2] > 14
+                ident == 10
+                and currentState[ident] == 0
+                and currentState[1] > 0
+                and currentState[2] > 14
         ):
             return True
         elif (
-            ident == 11
-            and currentState[ident] == 0
-            and currentState[1] > 0
-            and currentState[3] > 14
+                ident == 11
+                and currentState[ident] == 0
+                and currentState[1] > 0
+                and currentState[3] > 14
         ):
             return True
         else:
@@ -131,6 +130,7 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit, goal):
     newShortestT = np.round(oldShortestT + weight, 10)
     if weight < (goal - oldCost) / PR and weight < upperLimit:
         AddNode(G, newState, oldCost, upCost, PR)
+        G.add_edge(str(newState), "end", weight=(goal - (oldCost + upCost)) / PR)
         if G.nodes[str(newState)].get("shortestTime"):
             if G.nodes[str(newState)]["shortestTime"] > newShortestT:
                 G.nodes[str(newState)]["shortestTime"] = newShortestT
@@ -144,8 +144,6 @@ def AddNodesAndEdges(G, state, newState, i, upperLimit, goal):
         )
         if timeUntilEnd < G.nodes["end"]["shortestTime"]:
             G.nodes["end"]["shortestTime"] = timeUntilEnd
-            G.remove_edge(*list(G.in_edges("end"))[0])
-            G.add_edge(str(newState), "end", weight=(goal - (oldCost + upCost)) / PR)
 
 
 def AddSuccessors(G, state, upperLimit, goal):
@@ -154,37 +152,49 @@ def AddSuccessors(G, state, upperLimit, goal):
         if UpgradePossible(state, i):
             newState[i] = newState[i] + 1
             AddNodesAndEdges(G, state, newState, i, upperLimit, goal)
-    G.nodes[str(state)].pop("DoSuccessors")
+    G.nodes[str(state)]["DoSuccessors"] = False
     G.nodes[str(state)].pop("allTimeBaked")
     G.nodes[str(state)].pop("shortestTime")
 
 
-def killOrLive(G, upperLimit, goal):
-    for name in list(G.nodes):
-        if G.nodes[name].get("DoSuccessors"):
-            if G.nodes[name]["shortestTime"] > upperLimit:
-                G.remove_node(name)
-            else:
-                AddSuccessors(G, ast.literal_eval(name), upperLimit, goal)
+def killOrLive(G, upperLimit, goal, DoSuccList):
+    addSuccList = makeAddSuccList(G, upperLimit, DoSuccList)
+    for name in addSuccList:
+        AddSuccessors(G, ast.literal_eval(name), upperLimit, goal)
 
 
-def killDeadEnd(G, givenHitList):
+def makeAddSuccList(G, upperLimit, DoSuccList):
+    killList = []
+    addSuccList = []
+    for name in DoSuccList:
+        if G.nodes[name]["shortestTime"] > upperLimit:
+            killList.append(name)
+        else:
+            addSuccList.append(name)
+    G.remove_nodes_from(killList)
+    return addSuccList
+
+
+def killDeadEnd(H, givenHitList):
     counter = 0
     hitList = []
+    killList = []
     print("Laenge der hitList", len(givenHitList))
     for name in list(givenHitList):
-        if name in list(G.nodes):
-            if not G.nodes[name].get("DoSuccessors") and name != "end":
-                if G.out_degree[name] == 0:
-                    hitList.extend(list(nx.ancestors(G, name)))
-                    G.remove_node(name)
+        if [s for s in list(H.nodes) if name in s]:
+            if not H.nodes[name].get("DoSuccessors") and name != "end":
+                if H.out_degree[name] == 0:
+                    hitList.extend(list(H.predecessors(name)))
+                    killList.append(name)
                     if name in hitList:
                         hitList.remove(name)
                     counter += 1
+    H.remove_nodes_from(killList)
     print("Dead ends killed:", counter)
-    hitList=list(set(hitList))
+    hitList = list(set(hitList))
     if len(hitList) != 0:
-        killDeadEnd(G, hitList)
+        killDeadEnd(H, hitList)
+    return H
 
 
 def plotting(numberNodes, timesList):
@@ -208,51 +218,61 @@ def pathLen(G, zero):
 
 def defineOutput(iterations, G, start, shortest_path_len, shortest_path, end):
     return (
-        "Steps: "
-        + str(iterations)
-        + ",\nestimated time: "
-        + str(shortest_path_len / 60)
-        + " min,\nprocessing time: "
-        + str(end - start)
-        + " sec,\nnodes: "
-        + str(len(G.nodes))
-        + ",\nedges: "
-        + str(len(G.edges))
-        + ",\npath: "
-        + str(shortest_path)
-        + "\n\n"
+            "Steps: "
+            + str(iterations)
+            + ",\nestimated time: "
+            + str(shortest_path_len / 60)
+            + " min,\nprocessing time: "
+            + str(end - start)
+            + " sec,\nnodes: "
+            + str(len(G.nodes))
+            + ",\nedges: "
+            + str(len(G.edges))
+            + ",\npath: "
+            + str(shortest_path)
+            + "\n\n"
     )
 
 
 def printIntermediateSolution(shortest_path_len, shortest_path):
     print(shortest_path_len / 60)
     print(shortest_path)
-    # for state in shortest_path:
-    #     if state != "end":
-    #         print(state, ProductionRate(ast.literal_eval(state)))
+
+
+def onlyAncestryofEnd(G):
+    allNodes = list(G.nodes)
+    ancestryNodes = list(nx.ancestors(G, "end"))
+    notAncestryNodes = [x for x in allNodes if x not in ancestryNodes]
+    notAncestryNodes.remove("end")
+    print(len(notAncestryNodes))
+    G.remove_nodes_from(notAncestryNodes)
 
 
 def main(iterations):
     G = nx.DiGraph()
-    zero = [1] + [0] * 11 #[5, 1] +[0]*10
-    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0, testAncestry=True)
-    G.add_node("end", shortestTime=1e8)
+    zero = [1] + [0] * 11  # [5, 1] +[0]*10
+    G.add_node(str(zero), DoSuccessors=True, allTimeBaked=15, shortestTime=0)
+    G.add_node("end", shortestTime=1e8, DoSuccessors=False)
     G.add_edge(str(zero), "end", weight=1e7)
     upperLimit = 41.25 * 60
     numberNodes = [2]
     timesList = []
     goal = 1e6  # how many cookies should ba achieved all time?
-
+    bestTime = 1e8
     # record by simulation 41.5 min with range 90, this is a problem
 
     start = time.time()
     for i in range(iterations):
-        bestTime = G.nodes["end"]["shortestTime"]
+        G.add_node("end", shortestTime=1e8, DoSuccessors=False)
         start_loop = time.time()
 
-        killOrLive(G, upperLimit, goal)
-        
-        killDeadEnd(G, G.nodes)
+        DoSuccList = [x for x, y in G.nodes(data=True) if y['DoSuccessors']]
+
+        killOrLive(G, upperLimit, goal, DoSuccList)
+
+        oldDoSuccList = DoSuccList
+        if i % 1 == 0:
+            onlyAncestryofEnd(G)
 
         print("Iteration", i, "Nodes:", len(G.nodes))
         print("Time:", G.nodes["end"]["shortestTime"] / 60, "minutes")
@@ -272,6 +292,8 @@ def main(iterations):
         end = time.time()
         output = defineOutput(i, G, start, shortest_path_len, shortest_path, end)
         SaveRun(output)
+        bestTime = G.nodes["end"]["shortestTime"]
+        G.remove_node("end")
     end = time.time()
     print("Full time:", end - start)
 

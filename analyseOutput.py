@@ -1,5 +1,5 @@
 import ast
-import main as m
+import neverclick as m
 import datetime
 
 basecost_Unit = [15, 100, 1100, 12000, 130000]
