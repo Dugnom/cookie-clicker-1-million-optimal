@@ -19,7 +19,7 @@ baseproduction = [0.1, 1, 8, 47, 260]
 
 
 def SaveRun(text):
-    f = open("ergebnis", "r+")
+    f = open("result", "r+")
     f.write(text)
 
 
