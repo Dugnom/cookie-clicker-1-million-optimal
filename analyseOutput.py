@@ -17,7 +17,7 @@ baseproduction = [0.1, 1, 8, 47, 260]
 
 
 def OpenPath():
-    f = open("path2", "r+")
+    f = open("path-migu", "r+")
     flist = ast.literal_eval(f.read())
     listList = []
     for string in flist:
