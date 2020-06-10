@@ -51,7 +51,6 @@ def ProductionRate(sourceState):
         if i == 3 and sourceState[11] == 1:
             mult += 0.01 * np.floor(sourceState[1] / 2)
         if i == 0 and sourceState[i + 5] == 4:
-            print("KRASSES UPDATE")
             sumOfUpgrades = 0
             for k in range(1, 4):
                 sumOfUpgrades += sourceState[k]
@@ -270,28 +269,21 @@ def main(iterations):
 
         killOrLive(G, upperLimit, goal, DoSuccList)
 
-        oldDoSuccList = DoSuccList
-        if i % 1 == 0:
-            onlyAncestryofEnd(G)
-
         print("Iteration", i, "Nodes:", len(G.nodes))
         print("Time:", G.nodes["end"]["shortestTime"] / 60, "minutes")
-        numberNodes.append(len(G.nodes))
-        if G.nodes["end"]["shortestTime"] / 60 < 150:
-            timesList.append(G.nodes["end"]["shortestTime"] / 60)
-        # plotting(numberNodes, timesList)
 
-        shortest_path_len = pathLen(G, zero)
-        shortest_path = fullPath(G, zero)
-        printIntermediateSolution(shortest_path_len, shortest_path)
         end_loop = time.time()
         print(end_loop - start_loop)
+        end = time.time()
         if bestTime == G.nodes["end"]["shortestTime"]:
             print("It doesn't get better!")
+            shortest_path_len = pathLen(G, zero)
+            shortest_path = fullPath(G, zero)
+            printIntermediateSolution(shortest_path_len, shortest_path)
+            output = defineOutput(i, G, start, shortest_path_len, shortest_path, end)
+            SaveRun(output)
             break
-        end = time.time()
-        output = defineOutput(i, G, start, shortest_path_len, shortest_path, end)
-        SaveRun(output)
+        end = time.time()      
         bestTime = G.nodes["end"]["shortestTime"]
         G.remove_node("end")
     end = time.time()
